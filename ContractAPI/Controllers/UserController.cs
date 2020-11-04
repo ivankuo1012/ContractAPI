@@ -14,7 +14,8 @@ namespace ContractAPI.Controllers
 {
     public class UserController : ApiController
     {
-		static string sDataSource = "10.1.54.236";
+		//static string sDataSource = "10.1.54.236";
+		static string sDataSource = "127.0.0.1,11433";
 		static string sCatalog = "B110_CONTRACT"; //System.Configuration.ConfigurationManager.AppSettings.Get("Catalog");
 		static string sDbUser = "contract"; //System.Configuration.ConfigurationManager.AppSettings.Get("DbUser");
 		static string sDbPassword = "contract1234"; //DecryptStr(System.Configuration.ConfigurationManager.AppSettings.Get("DbPassword"), sEncrKey);
@@ -30,10 +31,15 @@ namespace ContractAPI.Controllers
 			{
 				
 				userData = GetLdapUserData(username);
-				string userRole = GetUserDb(username);
-				if (userRole != "")
+				Dictionary<string,string> userRole = GetUserDb(username);
+				
+				if (userRole!=null && userRole["user_status"] == "1")
 				{
-					userData.Add("user_role", userRole);
+					foreach(var role in userRole)
+                    {
+						userData.Add(role.Key,role.Value);
+					}
+					
 					
 				}
                 else
@@ -132,7 +138,7 @@ namespace ContractAPI.Controllers
 
 
 		}
-		private string GetUserDb(string name)
+		private Dictionary<string,string> GetUserDb(string name)
 		{
 			//string sDataSource = "10.1.54.236"; // System.Configuration.ConfigurationManager.AppSettings.Get("DataSource");
 			//string sCatalog = "B110_CONTRACT"; //System.Configuration.ConfigurationManager.AppSettings.Get("Catalog");
@@ -147,10 +153,10 @@ namespace ContractAPI.Controllers
 
 			//SqlConnection conn = new SqlConnection("data source=.\\SQLExpress; initial catalog = FUBON_DLP; user id = fubon_dlp; password = 1234");
 			conn.Open();
-			string UserRole="";
+			Dictionary<string,string> UserRole = new Dictionary<string, string>();
 			if ((conn.State & ConnectionState.Open) > 0)
 			{
-				string sSqlCmdUser = $"select * from users where user_id='1600218s' and user_status=1";
+				string sSqlCmdUser = $"select * from users where user_id='{name}' and user_status=1";
 				Debug.WriteLine(sSqlCmdUser);
 				//string sSqlCmdUser = "select * from user";  
 				//Console.WriteLine(sSqlCmdUser);
@@ -161,7 +167,8 @@ namespace ContractAPI.Controllers
 				{
 					while (dr.Read())
                     {
-						 UserRole = dr[1].ToString();
+						 UserRole.Add("user_role", dr[1].ToString());
+						 UserRole.Add("user_status", dr[2].ToString());
 					}
 						
 				}
@@ -223,6 +230,7 @@ namespace ContractAPI.Controllers
 				{
 					ResultPropertyCollection fields = result.Properties;
 					Dictionary<string, string> ldapUserData = new Dictionary<string, string>();
+					
 					foreach (String ldapField in fields.PropertyNames)
 					{
 						// cycle through objects in each field e.g. group membership  
@@ -240,6 +248,18 @@ namespace ContractAPI.Controllers
 						//;
 						//Console.WriteLine(String.Format("{0,-20} : {1}",ldapField, myCollection.ToString()));
 					}
+					Dictionary<string, string> userRole = GetUserDb(username);
+
+					if (userRole != null )
+					{
+						foreach (var roleData in userRole)
+						{
+							ldapUserData.Add(roleData.Key, roleData.Value);
+						}
+
+
+					}
+					
 					ldapUserDataCollection.Add(ldapUserData);
 
 					i++;
@@ -318,7 +338,37 @@ namespace ContractAPI.Controllers
 
 
 		}
-        public class UserAuthData
+		[System.Web.Http.HttpPost]
+		public IHttpActionResult UpdateUser(UserData user)
+		{
+			SqlConnection conn = new SqlConnection(this.consString);
+
+
+
+			//SqlConnection conn = new SqlConnection("data source=.\\SQLExpress; initial catalog = FUBON_DLP; user id = fubon_dlp; password = 1234");
+			conn.Open();
+			if ((conn.State & ConnectionState.Open) > 0)
+			{
+				string sSqlUpdate = $"UPDATE USERS set user_role='{user.user_role}' , user_status='{user.user_status}' where user_id='{user.user_id}' ";
+				Debug.WriteLine(sSqlUpdate);
+				//string sSqlCmdUser = "select * from user";  
+				//Console.WriteLine(sSqlCmdUser);
+				SqlCommand sqlInsert = new SqlCommand(sSqlUpdate, conn);
+
+				int numberOfRecords = sqlInsert.ExecuteNonQuery();
+				if (numberOfRecords > 0)
+				{
+					return Ok(true);
+				}
+			}
+
+
+
+			return Ok(false);
+
+
+		}
+		public class UserAuthData
 		{
 			public string Username { get; set; }
 			public string Password { get; set; }
