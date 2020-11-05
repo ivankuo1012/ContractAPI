@@ -163,7 +163,7 @@ namespace ContractAPI.Controllers
 				}
 			}
 
-
+			conn.Close();
 
 			return UserRole;
 		}
@@ -190,7 +190,7 @@ namespace ContractAPI.Controllers
 				}
 			}
 
-
+			conn.Close();
 
 			return false;
 		}
@@ -317,7 +317,7 @@ namespace ContractAPI.Controllers
 				}
 			}
 
-
+			conn.Close();
 
 			return Ok(false);
 
@@ -347,7 +347,7 @@ namespace ContractAPI.Controllers
 				}
 			}
 
-
+			conn.Close();
 
 			return Ok(false);
 
