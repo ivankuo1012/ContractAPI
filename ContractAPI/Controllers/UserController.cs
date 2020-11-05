@@ -16,6 +16,15 @@ namespace ContractAPI.Controllers
     public class UserController : ApiController
     {
 		string consString = System.Configuration.ConfigurationManager.AppSettings.Get("ContractDbConnStr");
+		static string ldapserver = System.Configuration.ConfigurationManager.AppSettings.Get("LdapServer"); //= "localhost";
+		static string port = System.Configuration.ConfigurationManager.AppSettings.Get("LdapServerPort"); // = "10389";
+		static string path = "LDAP://" + ldapserver + ":" + port + "/DC=systex,DC=tw";
+		static string username = System.Configuration.ConfigurationManager.AppSettings.Get("LdapServerUserName");//= "1600218s";
+		static string password = System.Configuration.ConfigurationManager.AppSettings.Get("LdapServerUserPassword"); //= "P@ssw0rdIvankuo";
+		
+		//init a directory entry
+		DirectoryEntry dEntry = new DirectoryEntry(path, username, password);
+
 		public Dictionary<string, string> Login(UserAuthData userdata)
 		{
 			string username = userdata.Username;
@@ -34,7 +43,6 @@ namespace ContractAPI.Controllers
                     {
 						userData.Add(role.Key,role.Value);
 					}
-					
 					
 				}
                 else
@@ -80,15 +88,8 @@ namespace ContractAPI.Controllers
 		[System.Web.Mvc.HttpPost]
 		public Dictionary<string, string> GetLdapUserData(string searchUser)
 		{
-			string ldapserver = System.Configuration.ConfigurationManager.AppSettings.Get("LdapServer"); //= "localhost";
-			string port = System.Configuration.ConfigurationManager.AppSettings.Get("LdapServerPort"); // = "10389";
-			string path = "LDAP://" + ldapserver + ":" + port + "/DC=systex,DC=tw";
-			string username = System.Configuration.ConfigurationManager.AppSettings.Get("LdapServerUserName");//= "1600218s";
-			string password = System.Configuration.ConfigurationManager.AppSettings.Get("LdapServerUserPassword"); //= "P@ssw0rdIvankuo";
-			string role = System.Configuration.ConfigurationManager.AppSettings.Get("role"); //= "P@ssw0rdIvankuo";
-																							 //init a directory entry
-			DirectoryEntry dEntry = new DirectoryEntry(path, username, password);
-			//dEntry.Path= path;
+			
+			
 			DirectorySearcher dSearcher = new DirectorySearcher(dEntry);
 
 			Dictionary<string, string> ldapUserData = new Dictionary<string, string>();
@@ -135,14 +136,7 @@ namespace ContractAPI.Controllers
 		}
 		private Dictionary<string,string> GetUserDb(string name)
 		{
-			//string sDataSource = "10.1.54.236"; // System.Configuration.ConfigurationManager.AppSettings.Get("DataSource");
-			//string sCatalog = "B110_CONTRACT"; //System.Configuration.ConfigurationManager.AppSettings.Get("Catalog");
-			//string sDbUser = "contract"; //System.Configuration.ConfigurationManager.AppSettings.Get("DbUser");
-			//string sDbPassword = "contract1234"; //DecryptStr(System.Configuration.ConfigurationManager.AppSettings.Get("DbPassword"), sEncrKey);
-
-
-
-			//string consString = "data source=" + sDataSource + "; initial catalog = " + sCatalog + "; user id = " + sDbUser + "; password = " + sDbPassword + "";
+			
 
 			SqlConnection conn = new SqlConnection(this.consString);
 
@@ -151,7 +145,7 @@ namespace ContractAPI.Controllers
 			Dictionary<string,string> UserRole = new Dictionary<string, string>();
 			if ((conn.State & ConnectionState.Open) > 0)
 			{
-				string sSqlCmdUser = $"select * from users where user_id='{name}' and user_status=1";
+				string sSqlCmdUser = $"select * from users where user_id='{name}'";
 				Debug.WriteLine(sSqlCmdUser);
 				//string sSqlCmdUser = "select * from user";  
 				//Console.WriteLine(sSqlCmdUser);
@@ -202,14 +196,8 @@ namespace ContractAPI.Controllers
 		}
 		public List<Dictionary<string, string>> SearchLdapUserData(string searchUser)
 		{
-			string ldapserver = System.Configuration.ConfigurationManager.AppSettings.Get("LdapServer"); //= "localhost";
-			string port = System.Configuration.ConfigurationManager.AppSettings.Get("LdapServerPort"); // = "10389";
-			string path = "LDAP://" + ldapserver + ":" + port + "/DC=systex,DC=tw";
-			string username = System.Configuration.ConfigurationManager.AppSettings.Get("LdapServerUserName");//= "1600218s";
-			string password = System.Configuration.ConfigurationManager.AppSettings.Get("LdapServerUserPassword"); //= "P@ssw0rdIvankuo";
-			string role = System.Configuration.ConfigurationManager.AppSettings.Get("role"); //= "P@ssw0rdIvankuo";
-			int i = 0;                                                                                                     //init a directory entry
-			DirectoryEntry dEntry = new DirectoryEntry(path, username, password);
+			
+			
 			//dEntry.Path= path;
 			DirectorySearcher dSearcher = new DirectorySearcher(dEntry);
 			List<Dictionary<string, string>> ldapUserDataCollection = new List<Dictionary<string, string>>();
@@ -225,7 +213,7 @@ namespace ContractAPI.Controllers
 				{
 					ResultPropertyCollection fields = result.Properties;
 					Dictionary<string, string> ldapUserData = new Dictionary<string, string>();
-					
+					string searchName = "";
 					foreach (String ldapField in fields.PropertyNames)
 					{
 						// cycle through objects in each field e.g. group membership  
@@ -234,30 +222,32 @@ namespace ContractAPI.Controllers
 						foreach (Object myCollection in fields[ldapField])
 							if (listLdapField.Contains(ldapField))
 							{
-
-
 								ldapUserData.Add(ldapField, myCollection.ToString());
+								if (ldapField == "name")
+                                {
+									searchName = myCollection.ToString();
+								}
+								
 							}
+							
 
-						//
-						//;
-						//Console.WriteLine(String.Format("{0,-20} : {1}",ldapField, myCollection.ToString()));
+						
 					}
-					Dictionary<string, string> userRole = GetUserDb(username);
+                    Dictionary<string, string> userRole = GetUserDb(searchName);
 
-					if (userRole != null )
-					{
-						foreach (var roleData in userRole)
-						{
-							ldapUserData.Add(roleData.Key, roleData.Value);
-						}
+                    if (userRole != null)
+                    {
+                        foreach (var roleData in userRole)
+                        {
+                            ldapUserData.Add(roleData.Key, roleData.Value);
+                        }
 
 
-					}
+                    }
+
+                    ldapUserDataCollection.Add(ldapUserData);
+
 					
-					ldapUserDataCollection.Add(ldapUserData);
-
-					i++;
 				}
 
 
