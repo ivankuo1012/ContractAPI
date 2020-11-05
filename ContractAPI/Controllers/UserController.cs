@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Data;
 using System.Data.SqlClient;
 using System.Diagnostics;
@@ -14,13 +15,7 @@ namespace ContractAPI.Controllers
 {
     public class UserController : ApiController
     {
-		//static string sDataSource = "10.1.54.236";
-		static string sDataSource = "127.0.0.1,11433";
-		static string sCatalog = "B110_CONTRACT"; //System.Configuration.ConfigurationManager.AppSettings.Get("Catalog");
-		static string sDbUser = "contract"; //System.Configuration.ConfigurationManager.AppSettings.Get("DbUser");
-		static string sDbPassword = "contract1234"; //DecryptStr(System.Configuration.ConfigurationManager.AppSettings.Get("DbPassword"), sEncrKey);
-		string consString = "data source=" + sDataSource + "; initial catalog = " + sCatalog + "; user id = " + sDbUser + "; password = " + sDbPassword + "";
-
+		string consString = System.Configuration.ConfigurationManager.AppSettings.Get("ContractDbConnStr");
 		public Dictionary<string, string> Login(UserAuthData userdata)
 		{
 			string username = userdata.Username;
@@ -33,7 +28,7 @@ namespace ContractAPI.Controllers
 				userData = GetLdapUserData(username);
 				Dictionary<string,string> userRole = GetUserDb(username);
 				
-				if (userRole!=null && userRole["user_status"] == "1")
+				if (userRole!=null && userRole.ContainsKey("user_status") && userRole["user_status"] == "1")
 				{
 					foreach(var role in userRole)
                     {
