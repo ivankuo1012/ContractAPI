@@ -167,33 +167,7 @@ namespace ContractAPI.Controllers
 
 			return UserRole;
 		}
-		private bool AddUserDb(UserData user)
-		{
-			SqlConnection conn = new SqlConnection(this.consString);
-
-			
-
-			//SqlConnection conn = new SqlConnection("data source=.\\SQLExpress; initial catalog = FUBON_DLP; user id = fubon_dlp; password = 1234");
-			conn.Open();
-			if ((conn.State & ConnectionState.Open) > 0)
-			{
-				string sSqlInsert = $"INSERT INTO USERS ('{user.user_id}','{user.user_role}','{1}')";
-				Debug.WriteLine(sSqlInsert);
-				//string sSqlCmdUser = "select * from user";  
-				//Console.WriteLine(sSqlCmdUser);
-				SqlCommand sqlInsert = new SqlCommand(sSqlInsert, conn);
-
-				int numberOfRecords = sqlInsert.ExecuteNonQuery();
-				if (numberOfRecords>0)
-				{
-					return true;
-				}
-			}
-
-			conn.Close();
-
-			return false;
-		}
+		
 		public List<Dictionary<string, string>> SearchLdapUserData(string searchUser)
 		{
 			
@@ -345,6 +319,59 @@ namespace ContractAPI.Controllers
 				{
 					return Ok(true);
 				}
+			}
+
+			conn.Close();
+
+			return Ok(false);
+
+
+		}
+		[System.Web.Http.HttpPost]
+		public IHttpActionResult ListUser()
+		{
+			SqlConnection conn = new SqlConnection(this.consString);
+
+
+
+			//SqlConnection conn = new SqlConnection("data source=.\\SQLExpress; initial catalog = FUBON_DLP; user id = fubon_dlp; password = 1234");
+			conn.Open();
+			if ((conn.State & ConnectionState.Open) > 0)
+			{
+				string sSQLCmdList = $"SELECT * FROM USERS; ";
+				Debug.WriteLine(sSQLCmdList);
+				//string sSqlCmdUser = "select * from user";  
+				//Console.WriteLine(sSqlCmdUser);
+				SqlCommand sqlInsert = new SqlCommand(sSQLCmdList, conn);
+				SqlCommand cmd = new SqlCommand(sSQLCmdList, conn);
+				SqlDataReader dr = cmd.ExecuteReader();
+				List<Dictionary<string, string>> listUsers = new List<Dictionary<string, string>>();
+				//Dictionary<string, string> ldapUserData = new Dictionary<string, string>();
+				if (dr.HasRows)
+				{
+					
+					while (dr.Read())
+					{
+						Dictionary<string, string> userData = new Dictionary<string, string>();
+						userData.Add("user_id", dr[0].ToString());
+						Dictionary<string, string> ldapUserData = GetLdapUserData(dr[0].ToString());
+						if (ldapUserData != null)
+						{
+							foreach (var item in ldapUserData)
+							{
+								userData.Add(item.Key, item.Value);
+							}
+						}
+						listUsers.Add(userData);
+						userData.Add("user_role", dr[1].ToString());
+						userData.Add("user_status", dr[2].ToString());
+					}
+					
+
+				}
+				
+					return Ok(listUsers);
+				
 			}
 
 			conn.Close();
