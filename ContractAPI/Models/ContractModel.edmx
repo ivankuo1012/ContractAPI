@@ -1,0 +1,97 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<edmx:Edmx Version="3.0" xmlns:edmx="http://schemas.microsoft.com/ado/2009/11/edmx">
+  <!-- EF Runtime content -->
+  <edmx:Runtime>
+    <!-- SSDL content -->
+    <edmx:StorageModels>
+      <Schema Namespace="B110_CONTRACTModel.Store" Provider="System.Data.SqlClient" ProviderManifestToken="2012" Alias="Self" xmlns:store="http://schemas.microsoft.com/ado/2007/12/edm/EntityStoreSchemaGenerator" xmlns:customannotation="http://schemas.microsoft.com/ado/2013/11/edm/customannotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm/ssdl">
+        <EntityType Name="contract">
+          <Key>
+            <PropertyRef Name="contract_id" />
+          </Key>
+          <Property Name="contract_id" Type="nvarchar" MaxLength="50" Nullable="false" />
+          <Property Name="bu" Type="nchar" MaxLength="10" />
+          <Property Name="customer_name" Type="nvarchar" MaxLength="50" />
+          <Property Name="project_name" Type="nvarchar" MaxLength="50" />
+          <Property Name="sales_dept" Type="nvarchar" MaxLength="50" />
+          <Property Name="sales" Type="nvarchar" MaxLength="50" />
+          <Property Name="start_date" Type="nvarchar" MaxLength="50" />
+          <Property Name="end_date" Type="nvarchar" MaxLength="50" />
+          <Property Name="money" Type="int" />
+          <Property Name="war_end_date" Type="nvarchar" MaxLength="50" />
+          <Property Name="product_type" Type="nvarchar" MaxLength="50" />
+        </EntityType>
+        <EntityContainer Name="B110_CONTRACTModelStoreContainer">
+          <EntitySet Name="contract" EntityType="Self.contract" Schema="dbo" store:Type="Tables" />
+        </EntityContainer>
+      </Schema>
+    </edmx:StorageModels>
+    <!-- CSDL content -->
+    <edmx:ConceptualModels>
+      <Schema Namespace="B110_CONTRACTModel" Alias="Self" annotation:UseStrongSpatialTypes="false" xmlns:annotation="http://schemas.microsoft.com/ado/2009/02/edm/annotation" xmlns:customannotation="http://schemas.microsoft.com/ado/2013/11/edm/customannotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm">
+        <EntityType Name="contract">
+          <Key>
+            <PropertyRef Name="contract_id" />
+          </Key>
+          <Property Name="contract_id" Type="String" MaxLength="50" FixedLength="false" Unicode="true" Nullable="false" />
+          <Property Name="bu" Type="String" MaxLength="10" FixedLength="true" Unicode="true" />
+          <Property Name="customer_name" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="project_name" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="sales_dept" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="sales" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="start_date" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="end_date" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="money" Type="Int32" />
+          <Property Name="war_end_date" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="product_type" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+        </EntityType>
+        <EntityContainer Name="B110_CONTRACTEntities" annotation:LazyLoadingEnabled="true">
+          <EntitySet Name="contract" EntityType="Self.contract" />
+        </EntityContainer>
+      </Schema>
+    </edmx:ConceptualModels>
+    <!-- C-S mapping content -->
+    <edmx:Mappings>
+      <Mapping Space="C-S" xmlns="http://schemas.microsoft.com/ado/2009/11/mapping/cs">
+        <EntityContainerMapping StorageEntityContainer="B110_CONTRACTModelStoreContainer" CdmEntityContainer="B110_CONTRACTEntities">
+          <EntitySetMapping Name="contract">
+            <EntityTypeMapping TypeName="B110_CONTRACTModel.contract">
+              <MappingFragment StoreEntitySet="contract">
+                <ScalarProperty Name="contract_id" ColumnName="contract_id" />
+                <ScalarProperty Name="bu" ColumnName="bu" />
+                <ScalarProperty Name="customer_name" ColumnName="customer_name" />
+                <ScalarProperty Name="project_name" ColumnName="project_name" />
+                <ScalarProperty Name="sales_dept" ColumnName="sales_dept" />
+                <ScalarProperty Name="sales" ColumnName="sales" />
+                <ScalarProperty Name="start_date" ColumnName="start_date" />
+                <ScalarProperty Name="end_date" ColumnName="end_date" />
+                <ScalarProperty Name="money" ColumnName="money" />
+                <ScalarProperty Name="war_end_date" ColumnName="war_end_date" />
+                <ScalarProperty Name="product_type" ColumnName="product_type" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+        </EntityContainerMapping>
+      </Mapping>
+    </edmx:Mappings>
+  </edmx:Runtime>
+  <!-- EF Designer content (DO NOT EDIT MANUALLY BELOW HERE) -->
+  <Designer xmlns="http://schemas.microsoft.com/ado/2009/11/edmx">
+    <Connection>
+      <DesignerInfoPropertySet>
+        <DesignerProperty Name="MetadataArtifactProcessing" Value="EmbedInOutputAssembly" />
+      </DesignerInfoPropertySet>
+    </Connection>
+    <Options>
+      <DesignerInfoPropertySet>
+        <DesignerProperty Name="ValidateOnBuild" Value="true" />
+        <DesignerProperty Name="EnablePluralization" Value="false" />
+        <DesignerProperty Name="IncludeForeignKeysInModel" Value="true" />
+        <DesignerProperty Name="UseLegacyProvider" Value="false" />
+        <DesignerProperty Name="CodeGenerationStrategy" Value="無" />
+      </DesignerInfoPropertySet>
+    </Options>
+    <!-- Diagram content (shape and connector positions) -->
+    <Diagrams></Diagrams>
+  </Designer>
+</edmx:Edmx>

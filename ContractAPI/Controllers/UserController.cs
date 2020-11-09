@@ -327,7 +327,7 @@ namespace ContractAPI.Controllers
 
 
 		}
-		[System.Web.Http.HttpPost]
+		[System.Web.Http.HttpGet]
 		public IHttpActionResult ListUser()
 		{
 			SqlConnection conn = new SqlConnection(this.consString);

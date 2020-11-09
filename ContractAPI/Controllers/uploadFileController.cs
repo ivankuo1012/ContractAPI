@@ -19,8 +19,9 @@ namespace ContractAPI.Controllers
         string consString = System.Configuration.ConfigurationManager.AppSettings.Get("ContractDbConnStr");
         public HttpResponseMessage Upload()
         {
-            HttpResponseMessage result = null;
+            HttpResponseMessage result ;
             var httpRequest = HttpContext.Current.Request;
+            
             Debug.WriteLine("upload start");
             if (httpRequest.Files.Count > 0)
             {
