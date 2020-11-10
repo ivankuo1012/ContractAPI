@@ -25,19 +25,19 @@ namespace ContractAPI.Controllers
 		//init a directory entry
 		DirectoryEntry dEntry = new DirectoryEntry(path, username, password);
 
-		public Dictionary<string, string> Login(UserAuthData userdata)
+		public Dictionary<string, dynamic> Login(UserAuthData userdata)
 		{
 			string username = userdata.Username;
 			string password = userdata.Password;
-			Dictionary<string, string> userData = new Dictionary<string, string>();
+			Dictionary<string, dynamic> userData = new Dictionary<string, dynamic>();
 
 			if (ValidateLDAPUser(username, password) )
 			{
 				
 				userData = GetLdapUserData(username);
-				Dictionary<string,string> userRole = GetUserDb(username);
+				Dictionary<string, dynamic> userRole = GetUserDb(username);
 				
-				if (userRole!=null && userRole.ContainsKey("user_status") && userRole["user_status"] == "1")
+				if (userRole!=null && userRole.ContainsKey("user_status") && userRole["user_status"] == true)
 				{
 					foreach(var role in userRole)
                     {
@@ -86,13 +86,13 @@ namespace ContractAPI.Controllers
 			}
 		}
 		[System.Web.Mvc.HttpPost]
-		public Dictionary<string, string> GetLdapUserData(string searchUser)
+		public Dictionary<string, dynamic> GetLdapUserData(string searchUser)
 		{
 			
 			
 			DirectorySearcher dSearcher = new DirectorySearcher(dEntry);
 
-			Dictionary<string, string> ldapUserData = new Dictionary<string, string>();
+			Dictionary<string, dynamic> ldapUserData = new Dictionary<string, dynamic>();
 
 			dSearcher.Filter = "(|(cn=*" + searchUser + "*)(displayname=*" + searchUser + "*)(sn=*" + searchUser + "*))";
 			SearchResult result = dSearcher.FindOne();
@@ -118,7 +118,7 @@ namespace ContractAPI.Controllers
 					//;
 					//Console.WriteLine(String.Format("{0,-20} : {1}",ldapField, myCollection.ToString()));
 				}
-				ldapUserData.Add("login", true.ToString());
+				ldapUserData.Add("login", true);
 				ldapUserData.Add("access_token", "access_token");
 				//ldapUserData.Add("role", role);
 			}
@@ -134,7 +134,7 @@ namespace ContractAPI.Controllers
 
 
 		}
-		private Dictionary<string,string> GetUserDb(string name)
+		private Dictionary<string, dynamic> GetUserDb(string name)
 		{
 			
 
@@ -142,7 +142,7 @@ namespace ContractAPI.Controllers
 
 			//SqlConnection conn = new SqlConnection("data source=.\\SQLExpress; initial catalog = FUBON_DLP; user id = fubon_dlp; password = 1234");
 			conn.Open();
-			Dictionary<string,string> UserRole = new Dictionary<string, string>();
+			Dictionary<string, dynamic> UserRole = new Dictionary<string, dynamic>();
 			if ((conn.State & ConnectionState.Open) > 0)
 			{
 				string sSqlCmdUser = $"select * from users where user_id='{name}'";
@@ -156,8 +156,8 @@ namespace ContractAPI.Controllers
 				{
 					while (dr.Read())
                     {
-						 UserRole.Add("user_role", dr[1].ToString());
-						 UserRole.Add("user_status", dr[2].ToString().ToLower());
+						 UserRole.Add("user_role", dr[1]);
+						 UserRole.Add("user_status", dr[2]);
 					}
 						
 				}
@@ -168,13 +168,13 @@ namespace ContractAPI.Controllers
 			return UserRole;
 		}
 		
-		public List<Dictionary<string, string>> SearchLdapUserData(string searchUser)
+		public List<Dictionary<string, dynamic>> SearchLdapUserData(string searchUser)
 		{
 			
 			
 			//dEntry.Path= path;
 			DirectorySearcher dSearcher = new DirectorySearcher(dEntry);
-			List<Dictionary<string, string>> ldapUserDataCollection = new List<Dictionary<string, string>>();
+			List<Dictionary<string, dynamic>> ldapUserDataCollection = new List<Dictionary<string, dynamic>>();
 			//Dictionary<int, Dictionary<string, string>> ldapUserData = new Dictionary<int, Dictionary<string, string>>();
 
 			dSearcher.Filter = "(|(cn=*" + searchUser + "*)(displayname=*" + searchUser + "*)(sn=*" + searchUser + "*))";
@@ -186,7 +186,7 @@ namespace ContractAPI.Controllers
 				foreach (SearchResult result in results)
 				{
 					ResultPropertyCollection fields = result.Properties;
-					Dictionary<string, string> ldapUserData = new Dictionary<string, string>();
+					Dictionary<string, dynamic> ldapUserData = new Dictionary<string, dynamic>();
 					string searchName = "";
 					foreach (String ldapField in fields.PropertyNames)
 					{
@@ -207,7 +207,7 @@ namespace ContractAPI.Controllers
 
 						
 					}
-                    Dictionary<string, string> userRole = GetUserDb(searchName);
+                    Dictionary<string, dynamic> userRole = GetUserDb(searchName);
 
                     if (userRole != null)
                     {
@@ -248,7 +248,7 @@ namespace ContractAPI.Controllers
 		public IHttpActionResult GetUserData(UserSearchData searchUser)
 		{
 			//string searchUser = "1600218s";
-			Dictionary<string, string> userData = GetLdapUserData(searchUser.searchName);
+			Dictionary<string, dynamic> userData = GetLdapUserData(searchUser.searchName);
 			//return userData;
 
 			return Ok(userData);
@@ -259,7 +259,7 @@ namespace ContractAPI.Controllers
 		public IHttpActionResult SearchUserData(UserSearchData searchUser)
 		{
 			//string searchUser = "1600218s";
-			List<Dictionary<string, string>> userData = SearchLdapUserData(searchUser.searchName);
+			List<Dictionary<string, dynamic>> userData = SearchLdapUserData(searchUser.searchName);
 			//return userData;
 
 			return Ok(userData);
@@ -345,16 +345,16 @@ namespace ContractAPI.Controllers
 				SqlCommand sqlInsert = new SqlCommand(sSQLCmdList, conn);
 				SqlCommand cmd = new SqlCommand(sSQLCmdList, conn);
 				SqlDataReader dr = cmd.ExecuteReader();
-				List<Dictionary<string, string>> listUsers = new List<Dictionary<string, string>>();
+				List<Dictionary<string, dynamic>> listUsers = new List<Dictionary<string, dynamic>>();
 				//Dictionary<string, string> ldapUserData = new Dictionary<string, string>();
 				if (dr.HasRows)
 				{
 					
 					while (dr.Read())
 					{
-						Dictionary<string, string> userData = new Dictionary<string, string>();
+						Dictionary<string, dynamic> userData = new Dictionary<string, dynamic>();
 						userData.Add("user_id", dr[0].ToString());
-						Dictionary<string, string> ldapUserData = GetLdapUserData(dr[0].ToString());
+						Dictionary<string, dynamic> ldapUserData = GetLdapUserData(dr[0].ToString());
 						if (ldapUserData != null)
 						{
 							foreach (var item in ldapUserData)
@@ -363,8 +363,8 @@ namespace ContractAPI.Controllers
 							}
 						}
 						listUsers.Add(userData);
-						userData.Add("user_role", dr[1].ToString());
-						userData.Add("user_status", dr[2].ToString().ToLower());
+						userData.Add("user_role", dr[1]);
+						userData.Add("user_status", dr[2]);
 					}
 					
 
