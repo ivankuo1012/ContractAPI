@@ -11,6 +11,7 @@ using Excel = Microsoft.Office.Interop.Excel;
 using System.Runtime.InteropServices;
 using System.Data.SqlClient;
 using System.Data;
+using System.Data.OleDb;
 
 namespace ContractAPI.Controllers
 {
@@ -62,13 +63,43 @@ namespace ContractAPI.Controllers
         private Dictionary<string,dynamic> readExcelToDb(string filename)
         {
             SqlConnection conn = new SqlConnection(this.consString);
-
-
+            OleDbConnection objConn = null;
+            DataTable dataTable = null;
+            //2.提供者名稱  Microsoft.Jet.OLEDB.4.0適用於2003以前版本，Microsoft.ACE.OLEDB.12.0 適用於2007以後的版本處理 xlsx 檔案
+            string ProviderName = "Microsoft.ACE.OLEDB.12.0;";
+            //3.Excel版本，Excel 8.0 針對Excel2000及以上版本，Excel5.0 針對Excel97。
+             string ExtendedString = "'Excel 8.0;";
+            //4.第一行是否為標題
+            string Hdr = "Yes;";
+            //5.IMEX=1 通知驅動程序始終將「互混」數據列作為文本讀取
+             string IMEX = "0';";
 
             //SqlConnection conn = new SqlConnection("data source=.\\SQLExpress; initial catalog = FUBON_DLP; user id = fubon_dlp; password = 1234");
+
+            string cs =
+               "Data Source=" + filename + ";" +
+               "Provider=" + ProviderName +
+               "Extended Properties=" + ExtendedString +
+               "HDR=" + Hdr +
+               "IMEX=" + IMEX;
+            objConn = new OleDbConnection(cs);
+            objConn.Open();
+            dataTable = objConn.GetOleDbSchemaTable(OleDbSchemaGuid.Tables, null);
+
+            if (dataTable == null)
+            {
+                Console.WriteLine("no table");
+            }
+
+            foreach (DataRow row in dataTable.Rows)
+            {
+                // Write the sheet name to the screen
+
+                //就是在這取得Sheet Name
+                Debug.WriteLine("sheetName: " + row["TABLE_NAME"].ToString());
+            }
             
 
-            
             Excel.Application xlApp;
             Excel.Workbook xlWorkBook;
             Excel.Worksheet xlWorkSheet;
