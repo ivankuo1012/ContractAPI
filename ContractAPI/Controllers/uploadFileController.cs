@@ -23,33 +23,43 @@ namespace ContractAPI.Controllers
             var httpRequest = HttpContext.Current.Request;
             
             Debug.WriteLine("upload start");
+            var resultAry = new Dictionary<string, dynamic>();
+
             if (httpRequest.Files.Count > 0)
             {
                 var docfiles = new List<string>();
-                foreach (string file in httpRequest.Files)
-                {
-                    var postedFile = httpRequest.Files[file];
-                    var filePath = HttpContext.Current.Server.MapPath("~/FileUploads/" + postedFile.FileName);
-                    
-                    postedFile.SaveAs(filePath);
-                    docfiles.Add(filePath);
-                }
-                foreach(var docfile in docfiles)
-                {
-                    readExcelToDb(docfile);
-                }
+                var postedFile = httpRequest.Files[0];
+                Debug.WriteLine(httpRequest.Files[0].FileName);
+                var filePath = HttpContext.Current.Server.MapPath("~/FileUploads/" + postedFile.FileName);
+                postedFile.SaveAs(filePath);
+                //foreach (string file in httpRequest.Files)
+                //{
+                //    var postedFile = httpRequest.Files[file];
+                //    //Debug.Write(httpRequest.Files[file]);
+                //    var filePath = HttpContext.Current.Server.MapPath("~/FileUploads/" + postedFile.FileName);
+
+                //    postedFile.SaveAs(filePath);
+                //    docfiles.Add(filePath);
+                //}
+
+                Dictionary<string, dynamic> importDB = readExcelToDb(filePath);
+                resultAry.Add("file_name", postedFile.FileName);
+                resultAry.Add("import_result", importDB);
+
                 
-                result = Request.CreateResponse(HttpStatusCode.Created, docfiles);
+                result = Request.CreateResponse(HttpStatusCode.Created, resultAry);
                 
+
             }
             else
             {
                 
                 result = Request.CreateResponse(HttpStatusCode.BadRequest);
+                
             }
             return result;
         }
-        private int readExcelToDb(string filename)
+        private Dictionary<string,dynamic> readExcelToDb(string filename)
         {
             SqlConnection conn = new SqlConnection(this.consString);
 
@@ -77,32 +87,64 @@ namespace ContractAPI.Controllers
             rw = range.Rows.Count;
             cl = range.Columns.Count;
             int numberOfRecords = 0;
+            var result = new Dictionary<string, dynamic>();
+            if (cl != 11)
+            {
+                result.Add("error", "檔案格式錯誤");
+                return result;
+            }
+            string[] contractColumn = new string[11] { "contract_id", "bu", "customer_name", "project_name", "sales_dept", "sales", "start_date", "end_date", "war_end_date", "product_type", "money" };
             conn.Open();
             if ((conn.State & ConnectionState.Open) > 0)    
             {
                 for (rCnt = 2; rCnt <= rw-1; rCnt++)
                 {
-                    string sSqlInsert = "INSERT INTO contract (contract_id, bu, customer_name, project_name, sales_dept, sales, start_date, end_date, money, war_end_date, product_type)values(";
+                    string contractId = (string)(range.Cells[rCnt, 1] as Excel.Range).Text;
+                    Debug.WriteLine(contractId);
+                    string sSqlInsert = "IF EXISTS (SELECT * FROM CONTRACT WHERE CONTRACT_ID='" + contractId + "' )" +
+                        "update contract set ";
+                    for (cCnt = 1; cCnt <= cl; cCnt++)
+                    {
+                        if (cCnt == cl)
+                        {
+                            int money = (int)(range.Cells[rCnt, cCnt] as Excel.Range).Value2;
+
+                            sSqlInsert += $"money='{money}'";
+                        }
+                        else
+                        {
+                            str = (string)(range.Cells[rCnt, cCnt] as Excel.Range).Text;
+
+                            sSqlInsert += contractColumn[cCnt-1] + "=" + $"'{str}',";
+                        }
+
+                        //Debug.WriteLine(sSqlInsert);
+
+                    }
+                    sSqlInsert += " where contract_id='"+contractId+"' ";
+                    sSqlInsert += "else  " +
+                        "INSERT INTO contract (contract_id, bu, customer_name, project_name, sales_dept, sales, start_date, end_date, war_end_date, product_type, money)values(";
                     for (cCnt = 1; cCnt <= cl; cCnt++)
                     {
                         if (cCnt == cl)
                         {
                            int money = (int)(range.Cells[rCnt, cCnt] as Excel.Range).Value2;
-                            Debug.WriteLine(money);
-                            sSqlInsert += $"'{money}',";
+                            
+                            sSqlInsert += $"'{money}'";
                         }
                         else
                         {
                             str = (string)(range.Cells[rCnt, cCnt] as Excel.Range).Text;
-                            Debug.WriteLine(str);
+                            
                             sSqlInsert += $"'{str}',";
                         }
                         
                         //Debug.WriteLine(sSqlInsert);
                         
                     }
-                    sSqlInsert += "'','')";
+                    sSqlInsert += ")";
                     Debug.WriteLine(sSqlInsert);
+
                     SqlCommand sqlInsert = new SqlCommand(sSqlInsert, conn);
                     numberOfRecords += sqlInsert.ExecuteNonQuery();
                 }
@@ -124,8 +166,8 @@ namespace ContractAPI.Controllers
             Marshal.ReleaseComObject(xlWorkSheet);
             Marshal.ReleaseComObject(xlWorkBook);
             Marshal.ReleaseComObject(xlApp);
-
-            return numberOfRecords;
+            result.Add("row_count", numberOfRecords);
+            return result;
         }
         public class contractData
         {

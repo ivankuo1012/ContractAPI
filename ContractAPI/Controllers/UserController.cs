@@ -156,7 +156,7 @@ namespace ContractAPI.Controllers
 				{
 					while (dr.Read())
                     {
-						 UserRole.Add("user_role", dr[1].ToString());
+						 UserRole.Add("user_role", dr[1]);
 						 UserRole.Add("user_status", dr[2]);
 					}
 						
@@ -363,7 +363,7 @@ namespace ContractAPI.Controllers
 							}
 						}
 						listUsers.Add(userData);
-						userData.Add("user_role", dr[1].ToString());
+						userData.Add("user_role", dr[1]);
 						userData.Add("user_status", dr[2]);
 					}
 					
