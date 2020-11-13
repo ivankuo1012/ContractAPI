@@ -105,6 +105,8 @@ namespace ContractAPI.Controllers
                 string qs = "select * from[" + sheetName + "]";
                 string[] contractColumn = new string[11] { "contract_id", "bu", "customer_name", "project_name", "sales_dept", "sales", "start_date", "end_date", "war_end_date", "product_type", "money" };
                 conn.Open();
+                string sSqlInsert = "";
+                int rowCntErr = 0;
                 if ((conn.State & ConnectionState.Open) > 0)
                 {
                     try
@@ -119,9 +121,12 @@ namespace ContractAPI.Controllers
                                 {
 
                                     int ColCnt = dr.FieldCount;
-
+                                    if (ColCnt != 11)
+                                    {
+                                        rowCntErr++;
+                                    }
                                     string contractId = dr[0].ToString();
-                                    string sSqlInsert = "IF EXISTS (SELECT * FROM CONTRACT WHERE CONTRACT_ID='" + contractId + "' )" +
+                                    sSqlInsert += "IF EXISTS (SELECT * FROM CONTRACT WHERE CONTRACT_ID='" + contractId + "' )" +
                            " update contract set ";
                                     for (var i = 0; i < ColCnt; i++)
                                     {
@@ -144,10 +149,9 @@ namespace ContractAPI.Controllers
                                             sSqlInsert += ",";
                                         }
                                     }
-                                    sSqlInsert += ")";
+                                    sSqlInsert += ");";
                                     //Debug.WriteLine(sSqlInsert);
-                                    SqlCommand sqlInsert = new SqlCommand(sSqlInsert, conn);
-                                    numberOfRecords += sqlInsert.ExecuteNonQuery();
+                                   
 
                                 }
 
@@ -170,7 +174,13 @@ namespace ContractAPI.Controllers
                 //    Debug.WriteLine("sheetName: " + row["TABLE_NAME"].ToString());
 
                 //}
-
+                if (rowCntErr > 0)
+                {
+                    result.Add("error", "檔案錯誤");
+                    return result;
+                }
+                SqlCommand sqlInsert = new SqlCommand(sSqlInsert, conn);
+                numberOfRecords += sqlInsert.ExecuteNonQuery();
                 conn.Close();
               
                 cn.Close();
