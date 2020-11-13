@@ -33,9 +33,10 @@ namespace ContractAPI.Controllers
                 Debug.WriteLine(httpRequest.Files[0].FileName);
                 var filePath = HttpContext.Current.Server.MapPath("~/FileUploads/" + postedFile.FileName);
                 postedFile.SaveAs(filePath);
+                
                 //foreach (string file in httpRequest.Files)
                 //{
-                //    var postedFile = httpRequest.Files[file];
+                //    var postedFile = httpRequest.Files[file]
                 //    //Debug.Write(httpRequest.Files[file]);
                 //    var filePath = HttpContext.Current.Server.MapPath("~/FileUploads/" + postedFile.FileName);
 
@@ -62,9 +63,12 @@ namespace ContractAPI.Controllers
         }
         private Dictionary<string,dynamic> readExcelToDb(string filename)
         {
+            var result = new Dictionary<string, dynamic>();
+            int numberOfRecords = 0;
+
             SqlConnection conn = new SqlConnection(this.consString);
-            OleDbConnection objConn = null;
-            DataTable dataTable = null;
+            OleDbConnection objConn;
+            DataTable dataTable;
             //2.提供者名稱  Microsoft.Jet.OLEDB.4.0適用於2003以前版本，Microsoft.ACE.OLEDB.12.0 適用於2007以後的版本處理 xlsx 檔案
             string ProviderName = "Microsoft.ACE.OLEDB.12.0;";
             //3.Excel版本，Excel 8.0 針對Excel2000及以上版本，Excel5.0 針對Excel97。
@@ -88,115 +92,91 @@ namespace ContractAPI.Controllers
 
             if (dataTable == null)
             {
-                Console.WriteLine("no table");
-            }
-
-            foreach (DataRow row in dataTable.Rows)
-            {
-                // Write the sheet name to the screen
-
-                //就是在這取得Sheet Name
-                Debug.WriteLine("sheetName: " + row["TABLE_NAME"].ToString());
-            }
-            
-
-            Excel.Application xlApp;
-            Excel.Workbook xlWorkBook;
-            Excel.Worksheet xlWorkSheet;
-            Excel.Range range;
-            string str;
-            int rCnt;
-            int cCnt;
-            int rw = 0;
-            int cl = 0;
-
-            xlApp = new Excel.Application();
-            xlWorkBook = xlApp.Workbooks.Open(@filename, 0, true, 5, "", "", true, Microsoft.Office.Interop.Excel.XlPlatform.xlWindows, "\t", false, false, 0, true, 1, 0);
-            xlWorkSheet = (Excel.Worksheet)xlWorkBook.Worksheets.get_Item(1);
-
-            range = xlWorkSheet.UsedRange;
-            rw = range.Rows.Count;
-            cl = range.Columns.Count;
-            int numberOfRecords = 0;
-            var result = new Dictionary<string, dynamic>();
-            if (cl != 11)
-            {
-                result.Add("error", "檔案格式錯誤");
+                result.Add("error", "檔案無法讀取");
                 return result;
             }
+            Debug.WriteLine(dataTable.Rows[0]["TABLE_NAME"].ToString());
+            string sheetName = dataTable.Rows[0]["TABLE_NAME"].ToString();
+            result.Add("sheetName", sheetName);
+            OleDbConnection cn = new OleDbConnection(cs);
+            cn.Open();
+            string qs = "select * from[" + sheetName + "]";
             string[] contractColumn = new string[11] { "contract_id", "bu", "customer_name", "project_name", "sales_dept", "sales", "start_date", "end_date", "war_end_date", "product_type", "money" };
             conn.Open();
-            if ((conn.State & ConnectionState.Open) > 0)    
+            if ((conn.State & ConnectionState.Open) > 0)
             {
-                for (rCnt = 2; rCnt <= rw-1; rCnt++)
+                try
                 {
-                    string contractId = (string)(range.Cells[rCnt, 1] as Excel.Range).Text;
-                    Debug.WriteLine(contractId);
-                    string sSqlInsert = "IF EXISTS (SELECT * FROM CONTRACT WHERE CONTRACT_ID='" + contractId + "' )" +
-                        "update contract set ";
-                    for (cCnt = 1; cCnt <= cl; cCnt++)
+                    using (OleDbCommand cmd = new OleDbCommand(qs, cn))
                     {
-                        if (cCnt == cl)
+                        using (OleDbDataReader dr = cmd.ExecuteReader())
                         {
-                            int money = (int)(range.Cells[rCnt, cCnt] as Excel.Range).Value2;
 
-                            sSqlInsert += $"money='{money}'";
-                        }
-                        else
-                        {
-                            str = (string)(range.Cells[rCnt, cCnt] as Excel.Range).Text;
+                            while (dr.Read())
 
-                            sSqlInsert += contractColumn[cCnt-1] + "=" + $"'{str}',";
-                        }
+                            {
 
-                        //Debug.WriteLine(sSqlInsert);
-
-                    }
-                    sSqlInsert += " where contract_id='"+contractId+"' ";
-                    sSqlInsert += "else  " +
+                                int ColCnt = dr.FieldCount;
+                                
+                                string contractId = dr[0].ToString();
+                                string sSqlInsert = "IF EXISTS (SELECT * FROM CONTRACT WHERE CONTRACT_ID='" + contractId + "' )" +
+                       " update contract set ";
+                                for(var i=0; i< ColCnt; i++)
+                                {
+                                    
+                                     sSqlInsert += contractColumn[i] + "=" + $"'{dr[i].ToString()}'";
+                                    if (i != ColCnt - 1)
+                                    {
+                                        sSqlInsert += ",";
+                                    }
+                                }
+                                //Debug.WriteLine(dr[0].ToString() + "\t" + dr[1].ToString() + "\t" + dr[2].ToString());
+                                sSqlInsert += " where contract_id='" + contractId + "' ";
+                                sSqlInsert += "else  " +
                         "INSERT INTO contract (contract_id, bu, customer_name, project_name, sales_dept, sales, start_date, end_date, war_end_date, product_type, money)values(";
-                    for (cCnt = 1; cCnt <= cl; cCnt++)
-                    {
-                        if (cCnt == cl)
-                        {
-                           int money = (int)(range.Cells[rCnt, cCnt] as Excel.Range).Value2;
-                            
-                            sSqlInsert += $"'{money}'";
+                                for (var i = 0; i < ColCnt; i++)
+                                {
+                                    sSqlInsert += $"'{dr[i].ToString()}'";
+                                    if (i != ColCnt - 1)
+                                    {
+                                        sSqlInsert += ",";
+                                    }
+                                }
+                                sSqlInsert += ")";
+                                //Debug.WriteLine(sSqlInsert);
+                                SqlCommand sqlInsert = new SqlCommand(sSqlInsert, conn);
+                                numberOfRecords += sqlInsert.ExecuteNonQuery();
+
+                            }
+
                         }
-                        else
-                        {
-                            str = (string)(range.Cells[rCnt, cCnt] as Excel.Range).Text;
-                            
-                            sSqlInsert += $"'{str}',";
-                        }
-                        
-                        //Debug.WriteLine(sSqlInsert);
-                        
+
                     }
-                    sSqlInsert += ")";
-                    Debug.WriteLine(sSqlInsert);
-
-                    SqlCommand sqlInsert = new SqlCommand(sSqlInsert, conn);
-                    numberOfRecords += sqlInsert.ExecuteNonQuery();
                 }
-
-                xlWorkBook.Close(true, null, null);
-                xlApp.Quit();
-
-                
-                
-                //string sSqlCmdUser = "select * from user";  
-                //Console.WriteLine(sSqlCmdUser);
+                catch (Exception ex)
+                {
+                    Debug.WriteLine(ex.Message);
+                }
                
 
-                
-                
             }
+            //foreach (DataRow row in dataTable.Rows)
+            //{
+            //    // Write the sheet name to the screen
+
+            //    //就是在這取得Sheet Name
+            //    Debug.WriteLine("sheetName: " + row["TABLE_NAME"].ToString());
+
+            //}
+
+
+
+          
+            
             conn.Close();
 
-            Marshal.ReleaseComObject(xlWorkSheet);
-            Marshal.ReleaseComObject(xlWorkBook);
-            Marshal.ReleaseComObject(xlApp);
+          
+            
             result.Add("row_count", numberOfRecords);
             return result;
         }
