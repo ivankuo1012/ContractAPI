@@ -67,8 +67,8 @@ namespace ContractAPI.Controllers
             int numberOfRecords = 0;
 
             SqlConnection conn = new SqlConnection(this.consString);
-            OleDbConnection objConn;
-            DataTable dataTable;
+            //OleDbConnection objConn;
+            
             //2.提供者名稱  Microsoft.Jet.OLEDB.4.0適用於2003以前版本，Microsoft.ACE.OLEDB.12.0 適用於2007以後的版本處理 xlsx 檔案
             string ProviderName = "Microsoft.ACE.OLEDB.12.0;";
             //3.Excel版本，Excel 8.0 針對Excel2000及以上版本，Excel5.0 針對Excel97。
@@ -86,98 +86,102 @@ namespace ContractAPI.Controllers
                "Extended Properties=" + ExtendedString +
                "HDR=" + Hdr +
                "IMEX=" + IMEX;
-            objConn = new OleDbConnection(cs);
-            objConn.Open();
-            dataTable = objConn.GetOleDbSchemaTable(OleDbSchemaGuid.Tables, null);
+            using (OleDbConnection cn = new OleDbConnection(cs))
+            {
 
-            if (dataTable == null)
-            {
-                result.Add("error", "檔案無法讀取");
-                return result;
-            }
-            Debug.WriteLine(dataTable.Rows[0]["TABLE_NAME"].ToString());
-            string sheetName = dataTable.Rows[0]["TABLE_NAME"].ToString();
-            result.Add("sheetName", sheetName);
-            OleDbConnection cn = new OleDbConnection(cs);
-            cn.Open();
-            string qs = "select * from[" + sheetName + "]";
-            string[] contractColumn = new string[11] { "contract_id", "bu", "customer_name", "project_name", "sales_dept", "sales", "start_date", "end_date", "war_end_date", "product_type", "money" };
-            conn.Open();
-            if ((conn.State & ConnectionState.Open) > 0)
-            {
-                try
+
+                cn.Open();
+                DataTable dataTable = cn.GetOleDbSchemaTable(OleDbSchemaGuid.Tables, null);
+
+                if (dataTable == null)
                 {
-                    using (OleDbCommand cmd = new OleDbCommand(qs, cn))
+                    result.Add("error", "檔案無法讀取");
+                    return result;
+                }
+                Debug.WriteLine(dataTable.Rows[0]["TABLE_NAME"].ToString());
+                string sheetName = dataTable.Rows[0]["TABLE_NAME"].ToString();
+                result.Add("sheetName", sheetName);
+               
+                string qs = "select * from[" + sheetName + "]";
+                string[] contractColumn = new string[11] { "contract_id", "bu", "customer_name", "project_name", "sales_dept", "sales", "start_date", "end_date", "war_end_date", "product_type", "money" };
+                conn.Open();
+                if ((conn.State & ConnectionState.Open) > 0)
+                {
+                    try
                     {
-                        using (OleDbDataReader dr = cmd.ExecuteReader())
+                        using (OleDbCommand cmd = new OleDbCommand(qs, cn))
                         {
-
-                            while (dr.Read())
-
+                            using (OleDbDataReader dr = cmd.ExecuteReader())
                             {
 
-                                int ColCnt = dr.FieldCount;
-                                
-                                string contractId = dr[0].ToString();
-                                string sSqlInsert = "IF EXISTS (SELECT * FROM CONTRACT WHERE CONTRACT_ID='" + contractId + "' )" +
-                       " update contract set ";
-                                for(var i=0; i< ColCnt; i++)
+                                while (dr.Read())
+
                                 {
-                                    
-                                     sSqlInsert += contractColumn[i] + "=" + $"'{dr[i].ToString()}'";
-                                    if (i != ColCnt - 1)
+
+                                    int ColCnt = dr.FieldCount;
+
+                                    string contractId = dr[0].ToString();
+                                    string sSqlInsert = "IF EXISTS (SELECT * FROM CONTRACT WHERE CONTRACT_ID='" + contractId + "' )" +
+                           " update contract set ";
+                                    for (var i = 0; i < ColCnt; i++)
                                     {
-                                        sSqlInsert += ",";
+
+                                        sSqlInsert += contractColumn[i] + "=" + $"'{dr[i].ToString()}'";
+                                        if (i != ColCnt - 1)
+                                        {
+                                            sSqlInsert += ",";
+                                        }
                                     }
-                                }
-                                //Debug.WriteLine(dr[0].ToString() + "\t" + dr[1].ToString() + "\t" + dr[2].ToString());
-                                sSqlInsert += " where contract_id='" + contractId + "' ";
-                                sSqlInsert += "else  " +
-                        "INSERT INTO contract (contract_id, bu, customer_name, project_name, sales_dept, sales, start_date, end_date, war_end_date, product_type, money)values(";
-                                for (var i = 0; i < ColCnt; i++)
-                                {
-                                    sSqlInsert += $"'{dr[i].ToString()}'";
-                                    if (i != ColCnt - 1)
+                                    //Debug.WriteLine(dr[0].ToString() + "\t" + dr[1].ToString() + "\t" + dr[2].ToString());
+                                    sSqlInsert += " where contract_id='" + contractId + "' ";
+                                    sSqlInsert += "else  " +
+                            "INSERT INTO contract (contract_id, bu, customer_name, project_name, sales_dept, sales, start_date, end_date, war_end_date, product_type, money)values(";
+                                    for (var i = 0; i < ColCnt; i++)
                                     {
-                                        sSqlInsert += ",";
+                                        sSqlInsert += $"'{dr[i].ToString()}'";
+                                        if (i != ColCnt - 1)
+                                        {
+                                            sSqlInsert += ",";
+                                        }
                                     }
+                                    sSqlInsert += ")";
+                                    //Debug.WriteLine(sSqlInsert);
+                                    SqlCommand sqlInsert = new SqlCommand(sSqlInsert, conn);
+                                    numberOfRecords += sqlInsert.ExecuteNonQuery();
+
                                 }
-                                sSqlInsert += ")";
-                                //Debug.WriteLine(sSqlInsert);
-                                SqlCommand sqlInsert = new SqlCommand(sSqlInsert, conn);
-                                numberOfRecords += sqlInsert.ExecuteNonQuery();
 
                             }
 
                         }
-
                     }
-                }
-                catch (Exception ex)
-                {
-                    Debug.WriteLine(ex.Message);
-                }
-               
+                    catch (Exception ex)
+                    {
+                        Debug.WriteLine(ex.Message);
+                    }
 
+
+                }
+                //foreach (DataRow row in dataTable.Rows)
+                //{
+                //    // Write the sheet name to the screen
+
+                //    //就是在這取得Sheet Name
+                //    Debug.WriteLine("sheetName: " + row["TABLE_NAME"].ToString());
+
+                //}
+
+                conn.Close();
+              
+                cn.Close();
+
+
+                
+
+
+
+                result.Add("row_count", numberOfRecords);
             }
-            //foreach (DataRow row in dataTable.Rows)
-            //{
-            //    // Write the sheet name to the screen
-
-            //    //就是在這取得Sheet Name
-            //    Debug.WriteLine("sheetName: " + row["TABLE_NAME"].ToString());
-
-            //}
-
-
-
-          
-            
-            conn.Close();
-
-          
-            
-            result.Add("row_count", numberOfRecords);
             return result;
         }
         public class contractData
