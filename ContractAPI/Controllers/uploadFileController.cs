@@ -96,6 +96,7 @@ namespace ContractAPI.Controllers
                 if (dataTable == null)
                 {
                     result.Add("error", "檔案無法讀取");
+                    result.Add("row_count", numberOfRecords);
                     return result;
                 }
                 Debug.WriteLine(dataTable.Rows[0]["TABLE_NAME"].ToString());
@@ -177,8 +178,10 @@ namespace ContractAPI.Controllers
                 if (rowCntErr > 0)
                 {
                     result.Add("error", "檔案錯誤");
+                    result.Add("row_count", numberOfRecords);
                     return result;
                 }
+                result.Add("error", "");
                 SqlCommand sqlInsert = new SqlCommand(sSqlInsert, conn);
                 numberOfRecords += sqlInsert.ExecuteNonQuery();
                 conn.Close();
