@@ -6,6 +6,7 @@
     <edmx:Diagrams>
       <Diagram DiagramId="1e0f4a7c7d224d7b83aa65a858d97192" Name="Diagram1">
         <EntityTypeShape EntityType="B110_CONTRACTModel.contract" Width="1.5" PointX="0.75" PointY="0.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="B110_CONTRACTModel.users" Width="1.5" PointX="3.375" PointY="0.75" />
       </Diagram>
     </edmx:Diagrams>
   </edmx:Designer>
