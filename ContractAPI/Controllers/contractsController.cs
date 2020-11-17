@@ -27,34 +27,64 @@ namespace ContractAPI.Controllers
         }
        public class ContractItems
         {
-            public contracts contractsItem { get; set; }
-            public items itemsItem { get; set; }
+            public string contract_id { get; set; }
+            public string customer_name { get; set; }
+            public string project_name { get; set; }
+            public string sales { get; set; }
+            public Nullable<System.DateTime> start_date { get; set; }
+            public Nullable<System.DateTime> end_date { get; set; }
+            public string pjm { get; set; }
+            public string dept { get; set; }
+            public string contact { get; set; }
+            public string contact_1 { get; set; }
+            public int item_id { get; set; }
+           
+            public string item_name { get; set; }
+            public Nullable<System.DateTime> warn_start_date { get; set; }
+            public Nullable<System.DateTime> warn_end_date { get; set; }
+           
+            //public contracts contractsItem { get; set; }
+            //public items itemsItem { get; set; }
         }
 
         [System.Web.Http.HttpGet]
         public PageResult<ContractItems> WhereContract(int? page, int pagesize = 10, string sales = "")
         {
             IQueryable<ContractItems> data = from c in db.contracts
-                                         join i in db.items on c.contract_id equals i.contract_id
-                                         where c.contract_id == i.contract_id 
+                                             join i in db.items on c.contract_id equals i.contract_id
+                                             where c.contract_id == i.contract_id
 
-                                         select new ContractItems { contractsItem= c, itemsItem=i   };
+                                             select new ContractItems { contract_id = c.contract_id,
+                                                 customer_name = c.customer_name,
+                                                 project_name = c.project_name,
+                                                 sales = c.sales,
+                                                 start_date = c.start_date,
+                                                 end_date = c.end_date,
+                                                 pjm = c.pjm,
+                                                 dept = c.dept,
+                                                 contact = c.contact,
+                                                 contact_1 = c.contact_1,
+                                                 item_id = i.item_id,
+                                                 item_name = i.item_name,
+                                                 warn_start_date = i.start_date,
+                                                 warn_end_date = i.end_date,
+                                         };
             int countDetails;
             if (sales != "")
             {
-                data = data.Where(x => x.contractsItem.sales == sales);
+                data = data.Where(x => x.sales == sales);
 
             }
             
             countDetails = data.Count();
-
+            
 
             var result = new PageResult<ContractItems>
             {
-                Count = countDetails,
+                Count = countDetails,   
                 PageIndex = page ?? 1,
                 PageSize = pagesize,
-                Items = data.OrderBy(o => o.contractsItem.contract_id).Skip((page - 1 ?? 0) * pagesize).Take(pagesize).ToList()
+                Items = data.OrderBy(o => o.contract_id).Skip((page - 1 ?? 0) * pagesize).Take(pagesize).ToList()
             };
             return result;
         }
