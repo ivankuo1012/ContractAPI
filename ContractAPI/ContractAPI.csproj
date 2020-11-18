@@ -201,6 +201,7 @@
     <None Include="Controllers\contracts1Controller.cs1" />
     <Compile Include="Controllers\contractsController.cs" />
     <Compile Include="Controllers\HomeController.cs" />
+    <Compile Include="Controllers\itemsController.cs" />
     <Compile Include="Controllers\LdapController.cs" />
     <Compile Include="Controllers\uploadFileController.cs" />
     <Compile Include="Controllers\UserController.cs" />

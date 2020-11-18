@@ -38,26 +38,10 @@
           <Property Name="user_role" Type="int" Nullable="false" />
           <Property Name="user_status" Type="bit" Nullable="false" />
         </EntityType>
-        <Association Name="FK_item_contract">
-          <End Role="contracts" Type="Self.contracts" Multiplicity="1" />
-          <End Role="items" Type="Self.items" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="contracts">
-              <PropertyRef Name="contract_id" />
-            </Principal>
-            <Dependent Role="items">
-              <PropertyRef Name="contract_id" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
         <EntityContainer Name="CONTRACTModelStoreContainer">
           <EntitySet Name="contracts" EntityType="Self.contracts" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="items" EntityType="Self.items" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="users" EntityType="Self.users" Schema="dbo" store:Type="Tables" />
-          <AssociationSet Name="FK_item_contract" Association="Self.FK_item_contract">
-            <End Role="contracts" EntitySet="contracts" />
-            <End Role="items" EntitySet="items" />
-          </AssociationSet>
         </EntityContainer>
       </Schema></edmx:StorageModels>
     <!-- CSDL content -->
@@ -74,7 +58,6 @@
           <Property Name="start_date" Type="DateTime" Precision="0" />
           <Property Name="end_date" Type="DateTime" Precision="0" />
           <Property Name="pjm" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
-          <NavigationProperty Name="items" Relationship="Self.FK_item_contract" FromRole="contracts" ToRole="items" />
           <Property Name="dept" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
           <Property Name="contact" Type="String" MaxLength="200" FixedLength="false" Unicode="true" />
           <Property Name="contact_1" Type="String" MaxLength="200" FixedLength="false" Unicode="true" />
@@ -88,7 +71,6 @@
           <Property Name="item_name" Type="String" MaxLength="200" FixedLength="false" Unicode="true" Nullable="false" />
           <Property Name="start_date" Type="DateTime" Precision="0" />
           <Property Name="end_date" Type="DateTime" Precision="0" />
-          <NavigationProperty Name="contracts" Relationship="Self.FK_item_contract" FromRole="items" ToRole="contracts" />
         </EntityType>
         <EntityType Name="users">
           <Key>
@@ -98,26 +80,10 @@
           <Property Name="user_role" Type="Int32" Nullable="false" />
           <Property Name="user_status" Type="Boolean" Nullable="false" />
         </EntityType>
-        <Association Name="FK_item_contract">
-          <End Role="contracts" Type="Self.contracts" Multiplicity="1" />
-          <End Role="items" Type="Self.items" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="contracts">
-              <PropertyRef Name="contract_id" />
-            </Principal>
-            <Dependent Role="items">
-              <PropertyRef Name="contract_id" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
         <EntityContainer Name="CONTRACTEntities" annotation:LazyLoadingEnabled="true">
           <EntitySet Name="contracts" EntityType="Self.contracts" />
           <EntitySet Name="items" EntityType="Self.items" />
           <EntitySet Name="users" EntityType="Self.users" />
-          <AssociationSet Name="FK_item_contract" Association="Self.FK_item_contract">
-            <End Role="contracts" EntitySet="contracts" />
-            <End Role="items" EntitySet="items" />
-          </AssociationSet>
         </EntityContainer>
       </Schema>
     </edmx:ConceptualModels>

@@ -9,18 +9,11 @@
 
 namespace ContractAPI.Models
 {
-    using Newtonsoft.Json;
     using System;
     using System.Collections.Generic;
     
     public partial class contracts
     {
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
-        public contracts()
-        {
-            this.items = new HashSet<items>();
-        }
-    
         public string contract_id { get; set; }
         public string customer_name { get; set; }
         public string project_name { get; set; }
@@ -31,8 +24,5 @@ namespace ContractAPI.Models
         public string dept { get; set; }
         public string contact { get; set; }
         public string contact_1 { get; set; }
-        [JsonIgnore]
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<items> items { get; set; }
     }
 }
