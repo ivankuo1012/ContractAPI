@@ -48,7 +48,7 @@ namespace ContractAPI.Controllers
         }
 
         [System.Web.Http.HttpGet]
-        public PageResult<ContractItems> WhereContract(int? page, int pagesize = 10, string search = "")
+        public PageResult<ContractItems> WhereContract(int? page, int pagesize = 10, string search = "",string  start_date="",string end_date="",string warn_start_date="",string warn_end_date="" )
         {
             IQueryable<ContractItems> data = from c in db.contracts
                                              join i in db.items on c.contract_id equals i.contract_id
@@ -72,11 +72,32 @@ namespace ContractAPI.Controllers
             int countDetails;
             if (search != "")
             {
-                data = data.Where(x => x.sales.Contains(search) || x.contract_id.Contains(search) || x.customer_name.Contains(search) || x.pjm.Contains(search) || x.item_name.Contains(search));
+                data = data.Where(x => x.sales.Contains(search) || x.contract_id.Contains(search) || x.customer_name.Contains(search)|| x.project_name.Contains(search) || x.pjm.Contains(search) || x.item_name.Contains(search) );
                 //data = data.Where(x => x.sales.Contains(search));
 
             }
-            
+            if (start_date != "" )
+            {
+                var date = DateTime.Parse(start_date);
+                
+                data = data.Where(d => d.end_date >= date);
+            }
+            if(end_date!="")
+            {
+                var date = DateTime.Parse(end_date);
+                data = data.Where(d => d.end_date <= date);
+            }
+            if (warn_start_date != "")
+            {
+                var date = DateTime.Parse(warn_start_date);
+
+                data = data.Where(d => d.warn_end_date >= date);
+            }
+            if (warn_end_date != "")
+            {
+                var date = DateTime.Parse(warn_end_date);
+                data = data.Where(d => d.warn_end_date <= date);
+            }
             countDetails = data.Count();
             
 
