@@ -16,11 +16,47 @@ namespace ContractAPI.Controllers
     public class itemsController : ApiController
     {
         private CONTRACTEntities db = new CONTRACTEntities();
+        public class ItemResult<T>
+        {
+            public int Count { get; set; }
+            public int PageIndex { get; set; }
+            public int PageSize { get; set; }
+            public List<T> Items { get; set; }
 
+        }
+        public class ContractItems
+        {
+           public items items { get; set; }
+        }
         // GET: api/items
         public IQueryable<items> Getitems()
         {
             return db.items;
+        }
+        [System.Web.Http.HttpGet]
+        public ItemResult<ContractItems> WhereItems(string contract_id, int? page, int pagesize = 10)
+        {
+            IQueryable<ContractItems> data = from i in db.items
+                                             where  i.contract_id == contract_id
+
+                                             select new ContractItems
+                                             {
+                                                 items = i
+                                             };
+            int countDetails;
+           
+
+            countDetails = data.Count();
+
+
+            var result = new ItemResult<ContractItems>
+            {
+                Count = countDetails,
+                PageIndex = page ?? 1,
+                PageSize = pagesize,
+                Items = data.OrderBy(o => o.items.item_id).Skip((page - 1 ?? 0) * pagesize).Take(pagesize).ToList()
+            };
+            return result;
         }
 
         // GET: api/items/5

@@ -48,11 +48,11 @@ namespace ContractAPI.Controllers
         }
 
         [System.Web.Http.HttpGet]
-        public PageResult<ContractItems> WhereContract(int? page, int pagesize = 10, string sales = "")
+        public PageResult<ContractItems> WhereContract(int? page, int pagesize = 10, string search = "")
         {
             IQueryable<ContractItems> data = from c in db.contracts
                                              join i in db.items on c.contract_id equals i.contract_id
-                                             where c.contract_id == i.contract_id
+                                             where c.contract_id == i.contract_id 
 
                                              select new ContractItems { contract_id = c.contract_id,
                                                  customer_name = c.customer_name,
@@ -70,9 +70,10 @@ namespace ContractAPI.Controllers
                                                  warn_end_date = i.end_date,
                                          };
             int countDetails;
-            if (sales != "")
+            if (search != "")
             {
-                data = data.Where(x => x.sales == sales);
+                data = data.Where(x => x.sales.Contains(search) || x.contract_id.Contains(search) || x.customer_name.Contains(search) || x.pjm.Contains(search) || x.item_name.Contains(search));
+                //data = data.Where(x => x.sales.Contains(search));
 
             }
             
