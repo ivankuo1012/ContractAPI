@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Newtonsoft.Json.Linq;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.OleDb;
@@ -42,6 +43,8 @@ namespace ContractAPI.Controllers
 
                 Dictionary<string, dynamic> importDB = readExcelToDb(filePath);
                 resultAry.Add("file_name", postedFile.FileName);
+                resultAry.Add("file_path", filePath);
+
                 resultAry.Add("import_result", importDB);
 
 
@@ -310,6 +313,279 @@ namespace ContractAPI.Controllers
                 result.Add("row_count", numberOfRecords);
             }
             return result;
+        }
+
+        private class FileName
+        {
+            string fileName { get; set; }
+        }
+        [HttpPost]
+        public HttpResponseMessage importExcelToDb()
+        {
+            HttpResponseMessage returnResult;
+            var httpRequest = HttpContext.Current.Request;
+
+            var result = new Dictionary<string, dynamic>();
+            int numberOfRecords = 0;
+
+
+            var filename = httpRequest["filename"];
+        
+            SqlConnection conn = new SqlConnection(this.consString);
+            //OleDbConnection objConn;
+
+            //2.提供者名稱  Microsoft.Jet.OLEDB.4.0適用於2003以前版本，Microsoft.ACE.OLEDB.12.0 適用於2007以後的版本處理 xlsx 檔案
+            string ProviderName = "Microsoft.ACE.OLEDB.12.0;";
+            //3.Excel版本，Excel 8.0 針對Excel2000及以上版本，Excel5.0 針對Excel97。
+            string ExtendedString = "'Excel 8.0;";
+            //4.第一行是否為標題
+            string Hdr = "Yes;";
+            //5.IMEX=1 通知驅動程序始終將「互混」數據列作為文本讀取
+            string IMEX = "0';";
+            
+            //SqlConnection conn = new SqlConnection("data source=.\\SQLExpress; initial catalog = FUBON_DLP; user id = fubon_dlp; password = 1234");
+            
+            Debug.WriteLine("fileName: "+ filename);
+            string cs =
+               "Data Source=" + filename + ";" +
+               "Provider=" + ProviderName +
+               "Extended Properties=" + ExtendedString +
+               "HDR=" + Hdr +
+               "IMEX=" + IMEX;
+            using (OleDbConnection cn = new OleDbConnection(cs))
+            {
+
+
+                cn.Open();
+                DataTable dataTable = cn.GetOleDbSchemaTable(OleDbSchemaGuid.Tables, null);
+
+                if (dataTable == null)
+                {
+                    result.Add("error", "檔案無法讀取");
+                    result.Add("row_count", numberOfRecords);
+                    returnResult = Request.CreateResponse(HttpStatusCode.Created,result);
+
+                    return returnResult;
+                }
+                Debug.WriteLine(dataTable.Rows[0]["TABLE_NAME"].ToString());
+                string sheetName = dataTable.Rows[0]["TABLE_NAME"].ToString();
+                result.Add("sheetName", sheetName);
+
+                string qs = "select * from[" + sheetName + "]";
+                const int columnCnt = 13;
+                string[] contractColumn = new string[columnCnt] { "contract_id", "customer_name", "project_name", "item_name", "start_date", "end_date", "start_date", "end_date", "dept", "sales", "pjm", "contact", "contact_1" };
+                conn.Open();
+                string sSqlInsert = "";
+                string sSqlItemInsert = "";
+                string SSqlItemDelete = "";
+                int rowCntErr = 0;
+                var ContractList = new Dictionary<string, string>();
+                if ((conn.State & ConnectionState.Open) > 0)
+                {
+                    try
+                    {
+                        using (OleDbCommand cmd = new OleDbCommand(qs, cn))
+                        {
+                            using (OleDbDataReader dr = cmd.ExecuteReader())
+                            {
+
+                                while (dr.Read())
+
+                                {
+
+                                    int ColCnt = dr.FieldCount;
+                                    if (ColCnt != columnCnt)
+                                    {
+                                        rowCntErr++;
+                                    }
+                                    string contractId = dr[0].ToString();
+
+
+
+                                    sSqlInsert += "IF EXISTS (SELECT * FROM CONTRACTS WHERE CONTRACT_ID='" + contractId + "' ) update CONTRACTS set ";
+                                    SSqlItemDelete += "delete from items where contract_id='" + contractId + "';";
+                                    for (var i = 0; i < ColCnt; i++)
+                                    {
+                                        if (i != 3 && i != 6 && i != 7)
+                                        {
+                                            if (i == 4 || i == 5)
+                                            {
+                                                // DateTime date = new DateTime();  
+                                                DateTime temp;
+                                                string dateString;
+                                                if (DateTime.TryParse(dr[i].ToString(), out temp))
+                                                {
+                                                    // Debug.WriteLine(dr[i].ToString());
+
+
+                                                    temp = Convert.ToDateTime(dr[i].ToString());
+                                                    dateString = temp.ToString("yyyy/MM/dd");
+
+
+                                                }
+                                                else
+                                                {
+                                                    dateString = DateTime.MinValue.ToString("yyyy/MM/dd");
+                                                }
+                                                sSqlInsert += contractColumn[i] + "=" + $"'{dateString}'";
+                                            }
+                                            else
+                                            {
+                                                sSqlInsert += contractColumn[i] + "=" + $"'{dr[i].ToString()}'";
+                                            }
+
+                                            if (i != ColCnt - 1)
+                                            {
+                                                sSqlInsert += ",";
+                                            }
+                                        }
+
+
+                                    }
+                                    //Debug.WriteLine(dr[0].ToString() + "\t" + dr[1].ToString() + "\t" + dr[2].ToString());
+                                    sSqlInsert += " where contract_id='" + contractId + "' ";
+                                    sSqlInsert += "else  " +
+                                                    "INSERT INTO CONTRACTS (";
+                                    sSqlItemInsert += "INSERT INTO ITEMS(contract_id," + contractColumn[3] + "," + contractColumn[6] + "," + contractColumn[7] + "";
+                                    for (var i = 0; i < ColCnt; i++)
+                                    {
+                                        if (i != 3 && i != 6 && i != 7)
+                                        {
+                                            sSqlInsert += $"{contractColumn[i]}";
+                                            if (i != ColCnt - 1)
+                                            {
+                                                sSqlInsert += ",";
+                                            }
+                                        }
+
+                                    }
+
+                                    sSqlInsert += ")values(";
+                                    sSqlItemInsert += ")values('" + contractId + "',";
+                                    Debug.WriteLine(contractId + "\r\n");
+                                    for (var i = 0; i < ColCnt; i++)
+                                    {
+                                        if (i == 4 || i == 5 || i == 6 || i == 7)
+                                        {
+                                            // DateTime date = new DateTime();  
+                                            DateTime temp;
+                                            string dateString;
+                                            if (DateTime.TryParse(dr[i].ToString(), out temp))
+                                            {
+                                                // Debug.WriteLine(dr[i].ToString());
+
+
+                                                temp = Convert.ToDateTime(dr[i].ToString());
+                                                dateString = temp.ToString("yyyy/MM/dd");
+
+
+                                            }
+                                            else
+                                            {
+                                                dateString = DateTime.MinValue.ToString("yyyy/MM/dd");
+                                            }
+                                            if (i == 4 || i == 5)
+                                            {
+                                                sSqlInsert += $"'{dateString}'";
+                                                if (i != ColCnt - 1)
+                                                {
+                                                    sSqlInsert += ",";
+                                                }
+                                            }
+                                            if (i == 6 || i == 7)
+                                            {
+                                                sSqlItemInsert += $"'{dateString}'";
+                                                if (i != 7)
+                                                {
+                                                    sSqlItemInsert += ",";
+                                                }
+                                            }
+
+
+                                        }
+                                        else
+                                        {
+                                            if (i != 3 && i != 6 && i != 7)
+                                            {
+                                                sSqlInsert += $"'{dr[i].ToString().Trim()}'";
+                                                if (i != ColCnt - 1)
+                                                {
+                                                    sSqlInsert += ",";
+                                                }
+                                            }
+                                            else
+                                            {
+
+                                                sSqlItemInsert += $"'{dr[i].ToString().Trim()}'";
+                                                if (i != 7)
+                                                {
+                                                    sSqlItemInsert += ",";
+                                                }
+                                            }
+                                        }
+
+
+                                    }
+                                    sSqlInsert += ");\r\n";
+                                    sSqlItemInsert += ");";
+
+
+
+                                }
+                                Debug.WriteLine(sSqlInsert + "\r\n");
+                                // Debug.WriteLine(SSqlItemDelete);
+
+                            }
+
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Debug.WriteLine(ex.Message);
+                    }
+
+
+                }
+                //foreach (DataRow row in dataTable.Rows)
+                //{
+                //    // Write the sheet name to the screen
+
+                //    //就是在這取得Sheet Name
+                //    Debug.WriteLine("sheetName: " + row["TABLE_NAME"].ToString());
+
+                //}
+                if (rowCntErr > 0)
+                {
+                    result.Add("error", "檔案錯誤");
+                    result.Add("row_count", numberOfRecords);
+                    returnResult = Request.CreateResponse(HttpStatusCode.Created, result);
+
+                    return returnResult = Request.CreateResponse(HttpStatusCode.Created, result);
+                    ;
+                }
+                result.Add("error", "");
+
+
+                SqlCommand sqlInsert = new SqlCommand(sSqlInsert, conn);
+                sqlInsert.ExecuteNonQuery();
+                SqlCommand sqlDeleteItem = new SqlCommand(SSqlItemDelete, conn);
+                sqlDeleteItem.ExecuteNonQuery();
+                SqlCommand sqlInsertItem = new SqlCommand(sSqlItemInsert, conn);
+
+                numberOfRecords += sqlInsertItem.ExecuteNonQuery();
+                conn.Close();
+
+                cn.Close();
+
+
+
+
+
+
+                result.Add("row_count", numberOfRecords);
+            }
+            returnResult = Request.CreateResponse(HttpStatusCode.Created, result);
+            return returnResult;
         }
         public class contractData
         {

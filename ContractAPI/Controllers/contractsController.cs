@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Data.Entity;
 using System.Data.Entity.Infrastructure;
+using System.Diagnostics;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -48,8 +49,9 @@ namespace ContractAPI.Controllers
         }
 
         [System.Web.Http.HttpGet]
-        public PageResult<ContractItems> WhereContract(int? page, int pagesize = 10, string search = "",string  start_date="",string end_date="",string warn_start_date="",string warn_end_date="" )
+        public PageResult<ContractItems> WhereContract(int? page, int pagesize = 10, string search = null ,string  start_date = null ,string end_date=null ,string warn_start_date=null ,string warn_end_date=null )
         {
+            int countDetails;
             IQueryable<ContractItems> data = from c in db.contracts
                                              join i in db.items on c.contract_id equals i.contract_id
                                              where c.contract_id == i.contract_id 
@@ -69,31 +71,32 @@ namespace ContractAPI.Controllers
                                                  warn_start_date = i.start_date,
                                                  warn_end_date = i.end_date,
                                          };
-            int countDetails;
-            if (search != "")
+            
+            if (search != null)
             {
                 data = data.Where(x => x.sales.Contains(search) || x.contract_id.Contains(search) || x.customer_name.Contains(search)|| x.project_name.Contains(search) || x.pjm.Contains(search) || x.item_name.Contains(search) );
+                Debug.WriteLine("search: "+search); ;
                 //data = data.Where(x => x.sales.Contains(search));
 
             }
-            if (start_date != "" )
+            if (start_date != null )
             {
                 var date = DateTime.Parse(start_date);
                 
                 data = data.Where(d => d.end_date >= date);
             }
-            if(end_date!="")
+            if(end_date!=null)
             {
                 var date = DateTime.Parse(end_date);
                 data = data.Where(d => d.end_date <= date);
             }
-            if (warn_start_date != "")
+            if (warn_start_date != null)
             {
                 var date = DateTime.Parse(warn_start_date);
 
                 data = data.Where(d => d.warn_end_date >= date);
             }
-            if (warn_end_date != "")
+            if (warn_end_date != null)
             {
                 var date = DateTime.Parse(warn_end_date);
                 data = data.Where(d => d.warn_end_date <= date);
