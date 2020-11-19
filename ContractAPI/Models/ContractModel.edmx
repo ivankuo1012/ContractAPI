@@ -4,7 +4,7 @@
   <edmx:Runtime>
     <!-- SSDL content -->
     <edmx:StorageModels>
-      <Schema Namespace="B110_CONTRACTModel.Store" Provider="System.Data.SqlClient" ProviderManifestToken="2012" Alias="Self" xmlns:store="http://schemas.microsoft.com/ado/2007/12/edm/EntityStoreSchemaGenerator" xmlns:customannotation="http://schemas.microsoft.com/ado/2013/11/edm/customannotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm/ssdl">
+    <Schema Namespace="B110_CONTRACTModel.Store" Provider="System.Data.SqlClient" ProviderManifestToken="2012" Alias="Self" xmlns:store="http://schemas.microsoft.com/ado/2007/12/edm/EntityStoreSchemaGenerator" xmlns:customannotation="http://schemas.microsoft.com/ado/2013/11/edm/customannotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm/ssdl">
         <EntityType Name="contract">
           <Key>
             <PropertyRef Name="contract_id" />
@@ -20,12 +20,21 @@
           <Property Name="money" Type="int" />
           <Property Name="war_end_date" Type="nvarchar" MaxLength="50" />
           <Property Name="product_type" Type="nvarchar" MaxLength="50" />
+          <Property Name="pjm" Type="nvarchar" MaxLength="50" />
+        </EntityType>
+        <EntityType Name="users">
+          <Key>
+            <PropertyRef Name="user_id" />
+          </Key>
+          <Property Name="user_id" Type="nvarchar" MaxLength="50" Nullable="false" />
+          <Property Name="user_role" Type="int" Nullable="false" />
+          <Property Name="user_status" Type="bit" Nullable="false" />
         </EntityType>
         <EntityContainer Name="B110_CONTRACTModelStoreContainer">
           <EntitySet Name="contract" EntityType="Self.contract" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="users" EntityType="Self.users" Schema="dbo" store:Type="Tables" />
         </EntityContainer>
-      </Schema>
-    </edmx:StorageModels>
+      </Schema></edmx:StorageModels>
     <!-- CSDL content -->
     <edmx:ConceptualModels>
       <Schema Namespace="B110_CONTRACTModel" Alias="Self" annotation:UseStrongSpatialTypes="false" xmlns:annotation="http://schemas.microsoft.com/ado/2009/02/edm/annotation" xmlns:customannotation="http://schemas.microsoft.com/ado/2013/11/edm/customannotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm">
@@ -44,10 +53,20 @@
           <Property Name="money" Type="Int32" />
           <Property Name="war_end_date" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
           <Property Name="product_type" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="pjm" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
         </EntityType>
         <EntityContainer Name="B110_CONTRACTEntities" annotation:LazyLoadingEnabled="true">
           <EntitySet Name="contract" EntityType="Self.contract" />
+          <EntitySet Name="users" EntityType="B110_CONTRACTModel.users" />
         </EntityContainer>
+        <EntityType Name="users">
+          <Key>
+            <PropertyRef Name="user_id" />
+          </Key>
+          <Property Name="user_id" Type="String" Nullable="false" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="user_role" Type="Int32" Nullable="false" />
+          <Property Name="user_status" Type="Boolean" Nullable="false" />
+        </EntityType>
       </Schema>
     </edmx:ConceptualModels>
     <!-- C-S mapping content -->
@@ -57,6 +76,7 @@
           <EntitySetMapping Name="contract">
             <EntityTypeMapping TypeName="B110_CONTRACTModel.contract">
               <MappingFragment StoreEntitySet="contract">
+                <ScalarProperty Name="pjm" ColumnName="pjm" />
                 <ScalarProperty Name="contract_id" ColumnName="contract_id" />
                 <ScalarProperty Name="bu" ColumnName="bu" />
                 <ScalarProperty Name="customer_name" ColumnName="customer_name" />
@@ -68,6 +88,15 @@
                 <ScalarProperty Name="money" ColumnName="money" />
                 <ScalarProperty Name="war_end_date" ColumnName="war_end_date" />
                 <ScalarProperty Name="product_type" ColumnName="product_type" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="users">
+            <EntityTypeMapping TypeName="B110_CONTRACTModel.users">
+              <MappingFragment StoreEntitySet="users">
+                <ScalarProperty Name="user_status" ColumnName="user_status" />
+                <ScalarProperty Name="user_role" ColumnName="user_role" />
+                <ScalarProperty Name="user_id" ColumnName="user_id" />
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>

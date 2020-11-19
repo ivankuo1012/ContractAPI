@@ -12,18 +12,12 @@ namespace ContractAPI.Models
     using System;
     using System.Collections.Generic;
     
-    public partial class contract
+    public partial class items
     {
+        public int item_id { get; set; }
         public string contract_id { get; set; }
-        public string bu { get; set; }
-        public string customer_name { get; set; }
-        public string project_name { get; set; }
-        public string sales_dept { get; set; }
-        public string sales { get; set; }
-        public string start_date { get; set; }
-        public string end_date { get; set; }
-        public Nullable<int> money { get; set; }
-        public string war_end_date { get; set; }
-        public string product_type { get; set; }
+        public string item_name { get; set; }
+        public Nullable<System.DateTime> start_date { get; set; }
+        public Nullable<System.DateTime> end_date { get; set; }
     }
 }

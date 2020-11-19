@@ -198,8 +198,10 @@
     <Compile Include="Areas\HelpPage\SampleGeneration\SampleDirection.cs" />
     <Compile Include="Areas\HelpPage\SampleGeneration\TextSample.cs" />
     <Compile Include="Areas\HelpPage\XmlDocumentationProvider.cs" />
+    <None Include="Controllers\contracts1Controller.cs1" />
     <Compile Include="Controllers\contractsController.cs" />
     <Compile Include="Controllers\HomeController.cs" />
+    <Compile Include="Controllers\itemsController.cs" />
     <Compile Include="Controllers\LdapController.cs" />
     <Compile Include="Controllers\uploadFileController.cs" />
     <Compile Include="Controllers\UserController.cs" />
@@ -207,9 +209,6 @@
     <Compile Include="Data\ContractAPIContext.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
-    </Compile>
-    <Compile Include="Models\contract.cs">
-      <DependentUpon>ContractModel.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\ContractModel.Context.cs">
       <AutoGen>True</AutoGen>
@@ -226,7 +225,31 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>ContractModel.edmx</DependentUpon>
     </Compile>
+    <Compile Include="Models\Contracts.Context.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Contracts.Context.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\contracts.cs">
+      <DependentUpon>Contracts.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\Contracts.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Contracts.edmx</DependentUpon>
+    </Compile>
+    <Compile Include="Models\Contracts1.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Contracts.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\items.cs">
+      <DependentUpon>Contracts.tt</DependentUpon>
+    </Compile>
     <Compile Include="Models\User.cs" />
+    <Compile Include="Models\users.cs">
+      <DependentUpon>Contracts.tt</DependentUpon>
+    </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -247,6 +270,16 @@
       <Generator>TextTemplatingFileGenerator</Generator>
       <DependentUpon>ContractModel.edmx</DependentUpon>
       <LastGenOutput>ContractModel.cs</LastGenOutput>
+    </Content>
+    <Content Include="Models\Contracts.Context.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <DependentUpon>Contracts.edmx</DependentUpon>
+      <LastGenOutput>Contracts.Context.cs</LastGenOutput>
+    </Content>
+    <Content Include="Models\Contracts.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <DependentUpon>Contracts.edmx</DependentUpon>
+      <LastGenOutput>Contracts1.cs</LastGenOutput>
     </Content>
     <Content Include="Scripts\bootstrap.js" />
     <Content Include="Scripts\bootstrap.min.js" />
@@ -275,6 +308,13 @@
     </EntityDeploy>
     <Content Include="Models\ContractModel.edmx.diagram">
       <DependentUpon>ContractModel.edmx</DependentUpon>
+    </Content>
+    <EntityDeploy Include="Models\Contracts.edmx">
+      <Generator>EntityModelCodeGenerator</Generator>
+      <LastGenOutput>Contracts.Designer.cs</LastGenOutput>
+    </EntityDeploy>
+    <Content Include="Models\Contracts.edmx.diagram">
+      <DependentUpon>Contracts.edmx</DependentUpon>
     </Content>
     <None Include="Scripts\jquery-3.4.1.intellisense.js" />
     <Content Include="Scripts\jquery-3.4.1.js" />

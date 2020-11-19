@@ -13,10 +13,10 @@ namespace ContractAPI.Models
     using System.Data.Entity;
     using System.Data.Entity.Infrastructure;
     
-    public partial class B110_CONTRACTEntities : DbContext
+    public partial class CONTRACTEntities : DbContext
     {
-        public B110_CONTRACTEntities()
-            : base("name=B110_CONTRACTEntities")
+        public CONTRACTEntities()
+            : base("name=CONTRACTEntities")
         {
         }
     
@@ -25,7 +25,8 @@ namespace ContractAPI.Models
             throw new UnintentionalCodeFirstException();
         }
     
-        public virtual DbSet<contracts> contract { get; set; }
+        public virtual DbSet<contracts> contracts { get; set; }
+        public virtual DbSet<items> items { get; set; }
         public virtual DbSet<users> users { get; set; }
     }
 }

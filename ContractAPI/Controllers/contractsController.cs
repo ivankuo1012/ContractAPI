@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Data;
 using System.Data.Entity;
 using System.Data.Entity.Infrastructure;
-using System.Diagnostics;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -16,43 +15,137 @@ namespace ContractAPI.Controllers
 {
     public class contractsController : ApiController
     {
-        private B110_CONTRACTEntities db = new B110_CONTRACTEntities();
+        private CONTRACTEntities db = new CONTRACTEntities();
 
-        // GET: api/contracts
-        public IQueryable<contract> Getcontract()
+        public class PageResult<T>
         {
-            return db.contract;
-        }  
+            public int Count { get; set; }
+            public int PageIndex { get; set; }
+            public int PageSize { get; set; }
+            public List<T> Items { get; set; }
+
+        }
+       public class ContractItems
+        {
+            public string contract_id { get; set; }
+            public string customer_name { get; set; }
+            public string project_name { get; set; }
+            public string sales { get; set; }
+            public Nullable<System.DateTime> start_date { get; set; }
+            public Nullable<System.DateTime> end_date { get; set; }
+            public string pjm { get; set; }
+            public string dept { get; set; }
+            public string contact { get; set; }
+            public string contact_1 { get; set; }
+            public int item_id { get; set; }
+           
+            public string item_name { get; set; }
+            public Nullable<System.DateTime> warn_start_date { get; set; }
+            public Nullable<System.DateTime> warn_end_date { get; set; }
+           
+            //public contracts contractsItem { get; set; }
+            //public items itemsItem { get; set; }
+        }
+
+        [System.Web.Http.HttpGet]
+        public PageResult<ContractItems> WhereContract(int? page, int pagesize = 10, string search = "",string  start_date="",string end_date="",string warn_start_date="",string warn_end_date="" )
+        {
+            IQueryable<ContractItems> data = from c in db.contracts
+                                             join i in db.items on c.contract_id equals i.contract_id
+                                             where c.contract_id == i.contract_id 
+
+                                             select new ContractItems { contract_id = c.contract_id,
+                                                 customer_name = c.customer_name,
+                                                 project_name = c.project_name,
+                                                 sales = c.sales,
+                                                 start_date = c.start_date,
+                                                 end_date = c.end_date,
+                                                 pjm = c.pjm,
+                                                 dept = c.dept,
+                                                 contact = c.contact,
+                                                 contact_1 = c.contact_1,
+                                                 item_id = i.item_id,
+                                                 item_name = i.item_name,
+                                                 warn_start_date = i.start_date,
+                                                 warn_end_date = i.end_date,
+                                         };
+            int countDetails;
+            if (search != "")
+            {
+                data = data.Where(x => x.sales.Contains(search) || x.contract_id.Contains(search) || x.customer_name.Contains(search)|| x.project_name.Contains(search) || x.pjm.Contains(search) || x.item_name.Contains(search) );
+                //data = data.Where(x => x.sales.Contains(search));
+
+            }
+            if (start_date != "" )
+            {
+                var date = DateTime.Parse(start_date);
+                
+                data = data.Where(d => d.end_date >= date);
+            }
+            if(end_date!="")
+            {
+                var date = DateTime.Parse(end_date);
+                data = data.Where(d => d.end_date <= date);
+            }
+            if (warn_start_date != "")
+            {
+                var date = DateTime.Parse(warn_start_date);
+
+                data = data.Where(d => d.warn_end_date >= date);
+            }
+            if (warn_end_date != "")
+            {
+                var date = DateTime.Parse(warn_end_date);
+                data = data.Where(d => d.warn_end_date <= date);
+            }
+            countDetails = data.Count();
+            
+
+            var result = new PageResult<ContractItems>
+            {
+                Count = countDetails,   
+                PageIndex = page ?? 1,
+                PageSize = pagesize,
+                Items = data.OrderBy(o => o.contract_id).Skip((page - 1 ?? 0) * pagesize).Take(pagesize).ToList()
+            };
+            return result;
+        }
+        // GET: api/contracts
+        public IQueryable<contracts> Getcontracts()
+        {
+           // return from v in db.contracts
+                  // select v;
+           return db.contracts;
+        }
 
         // GET: api/contracts/5
-        [ResponseType(typeof(contract))]
-        public async Task<IHttpActionResult> Getcontract(string id)
+        [ResponseType(typeof(contracts))]
+        public async Task<IHttpActionResult> Getcontracts(string id)
         {
-            contract contract = await db.contract.FindAsync(id);
-            if (contract == null)
+            contracts contracts = await db.contracts.FindAsync(id);
+            if (contracts == null)
             {
                 return NotFound();
             }
 
-            return Ok(contract);
+            return Ok(contracts);
         }
 
         // PUT: api/contracts/5
         [ResponseType(typeof(void))]
-        public async Task<IHttpActionResult> Putcontract(string id, contract contract)
+        public async Task<IHttpActionResult> Putcontracts(string id, contracts contracts)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            if (id != contract.contract_id)
+            if (id != contracts.contract_id)
             {
-                Debug.WriteLine("id: "+ id);
                 return BadRequest();
             }
 
-            db.Entry(contract).State = EntityState.Modified;
+            db.Entry(contracts).State = EntityState.Modified;
 
             try
             {
@@ -60,7 +153,7 @@ namespace ContractAPI.Controllers
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (!contractExists(id))
+                if (!contractsExists(id))
                 {
                     return NotFound();
                 }
@@ -74,15 +167,15 @@ namespace ContractAPI.Controllers
         }
 
         // POST: api/contracts
-        [ResponseType(typeof(contract))]
-        public async Task<IHttpActionResult> Postcontract(contract contract)
+        [ResponseType(typeof(contracts))]
+        public async Task<IHttpActionResult> Postcontracts(contracts contracts)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            db.contract.Add(contract);
+            db.contracts.Add(contracts);
 
             try
             {
@@ -90,7 +183,7 @@ namespace ContractAPI.Controllers
             }
             catch (DbUpdateException)
             {
-                if (contractExists(contract.contract_id))
+                if (contractsExists(contracts.contract_id))
                 {
                     return Conflict();
                 }
@@ -100,23 +193,23 @@ namespace ContractAPI.Controllers
                 }
             }
 
-            return CreatedAtRoute("DefaultApi", new { id = contract.contract_id }, contract);
+            return CreatedAtRoute("DefaultApi", new { id = contracts.contract_id }, contracts);
         }
 
         // DELETE: api/contracts/5
-        [ResponseType(typeof(contract))]
-        public async Task<IHttpActionResult> Deletecontract(string id)
+        [ResponseType(typeof(contracts))]
+        public async Task<IHttpActionResult> Deletecontracts(string id)
         {
-            contract contract = await db.contract.FindAsync(id);
-            if (contract == null)
+            contracts contracts = await db.contracts.FindAsync(id);
+            if (contracts == null)
             {
                 return NotFound();
             }
 
-            db.contract.Remove(contract);
+            db.contracts.Remove(contracts);
             await db.SaveChangesAsync();
 
-            return Ok(contract);
+            return Ok(contracts);
         }
 
         protected override void Dispose(bool disposing)
@@ -128,9 +221,9 @@ namespace ContractAPI.Controllers
             base.Dispose(disposing);
         }
 
-        private bool contractExists(string id)
+        private bool contractsExists(string id)
         {
-            return db.contract.Count(e => e.contract_id == id) > 0;
+            return db.contracts.Count(e => e.contract_id == id) > 0;
         }
     }
 }
