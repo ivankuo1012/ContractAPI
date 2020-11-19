@@ -7,8 +7,6 @@ using System.Net.Http;
 using System.Web;
 using System.Web.Http;
 using System.Diagnostics;
-using Excel = Microsoft.Office.Interop.Excel;
-using System.Runtime.InteropServices;
 using System.Data.SqlClient;
 using System.Data;
 using System.Data.OleDb;
@@ -179,6 +177,7 @@ namespace ContractAPI.Controllers
                     result.Add("error", "檔案錯誤");
                     return result;
                 }
+                result.Add("error", "");
                 SqlCommand sqlInsert = new SqlCommand(sSqlInsert, conn);
                 numberOfRecords += sqlInsert.ExecuteNonQuery();
                 conn.Close();
