@@ -103,8 +103,10 @@ namespace ContractAPI.Controllers
                 result.Add("sheetName", sheetName);
 
                 string qs = "select * from[" + sheetName + "]";
-                const int columnCnt = 13;
-                string[] contractColumn = new string[columnCnt] { "contract_id", "customer_name", "project_name", "item_name", "start_date", "end_date", "start_date", "end_date", "dept", "sales", "pjm", "contact", "contact_1" };
+                const int columnCnt = 14;
+                //string[] contractColumn = new string[columnCnt] { "contract_id", "customer_name", "project_name", "item_name", "start_date", "end_date", "start_date", "end_date", "dept", "sales", "pjm", "contact", "contact_1","warranty" };
+                string[] contractColumn = new string[10] { "contract_id", "customer_name", "project_name", "start_date", "end_date", "dept", "sales", "pjm", "contact", "contact_1"};
+                string[] itemColumn = new string[5] { "contract_id", "item_name", "start_date", "end_date", "warranty" };
                 conn.Open();
                 string sSqlInsert = "";
                 string sSqlItemInsert = "";
@@ -135,136 +137,55 @@ namespace ContractAPI.Controllers
 
                                     sSqlInsert += "IF EXISTS (SELECT * FROM CONTRACTS WHERE CONTRACT_ID='" + contractId + "' ) update CONTRACTS set ";
                                     SSqlItemDelete += "delete from items where contract_id='" + contractId + "';";
-                                    for (var i = 0; i < ColCnt; i++)
+
+                                    sSqlInsert+= $"{contractColumn[1]} = '{dr[1]}', ";
+                                    sSqlInsert+= $"{contractColumn[2]} = '{dr[2]}', ";
+                                    sSqlInsert+= (CheckDate(dr[4].ToString()) == null) ? null:$"{contractColumn[3]} = '{CheckDate(dr[4].ToString())}', ";
+                                    sSqlInsert+= (CheckDate(dr[5].ToString()) == null) ? null:$"{contractColumn[4]} = '{CheckDate(dr[5].ToString())}', ";
+                                    sSqlInsert+= $"{contractColumn[5]} = '{dr[8]}', ";
+                                    sSqlInsert+= $"{contractColumn[6]} = '{dr[9]}', ";
+                                    sSqlInsert+= $"{contractColumn[7]} = '{dr[10]}', ";
+                                    sSqlInsert+= $"{contractColumn[8]} = '{dr[11]}', ";
+                                    sSqlInsert+= $"{contractColumn[9]} = '{dr[12]}' ";
+                                    sSqlInsert += $"where contract_id= '{contractId}' ";
+                                    sSqlInsert += "else insert into contracts(";
+                                    for(var i = 0; i < contractColumn.Length; i++)
                                     {
-                                        if (i != 3 && i != 6 && i != 7)
-                                        {
-                                            if (i == 4 || i == 5 )
-                                            {
-                                                // DateTime date = new DateTime();  
-                                                DateTime temp;
-                                                string dateString;
-                                                if (DateTime.TryParse(dr[i].ToString(), out temp))
-                                                {
-                                                    // Debug.WriteLine(dr[i].ToString());
-
-
-                                                    temp = Convert.ToDateTime(dr[i].ToString());
-                                                    dateString = temp.ToString("yyyy/MM/dd");
-
-
-                                                }
-                                                else
-                                                {
-                                                    dateString = DateTime.MinValue.ToString("yyyy/MM/dd");
-                                                }
-                                                sSqlInsert += contractColumn[i] + "=" + $"'{dateString}'";
-                                            }
-                                            else
-                                            {
-                                                sSqlInsert += contractColumn[i] + "=" + $"'{dr[i].ToString()}'";
-                                            }
-                                             
-                                            if (i != ColCnt - 1)
-                                            {
-                                                sSqlInsert += ",";
-                                            }
-                                        }
-
+                                        if (i != 0)  sSqlInsert += ","; 
+                                        sSqlInsert += $"{contractColumn[i]}";
 
                                     }
-                                    //Debug.WriteLine(dr[0].ToString() + "\t" + dr[1].ToString() + "\t" + dr[2].ToString());
-                                    sSqlInsert += " where contract_id='" + contractId + "' ";
-                                    sSqlInsert += "else  " +
-                                                    "INSERT INTO CONTRACTS (";
-                                    sSqlItemInsert += "INSERT INTO ITEMS(contract_id," + contractColumn[3] + "," + contractColumn[6] + "," + contractColumn[7] + "";
-                                    for (var i = 0; i < ColCnt; i++)
-                                    {
-                                        if (i != 3 && i != 6 && i != 7)
-                                        {
-                                            sSqlInsert += $"{contractColumn[i]}";
-                                            if (i != ColCnt - 1)
-                                            {
-                                                sSqlInsert += ",";
-                                            }
-                                        }
+                                    sSqlInsert += ") values (";
+                                    sSqlInsert += $"'{dr[0]}',";
+                                    sSqlInsert += $"'{dr[1]}',";
+                                    sSqlInsert += $"'{dr[2]}',";
 
-                                    }
+                                    sSqlInsert += (CheckDate(dr[4].ToString()) == null) ? "null," : $"'{CheckDate(dr[4].ToString())}',";
+                                    sSqlInsert += (CheckDate(dr[5].ToString()) == null) ? "null," : $"'{CheckDate(dr[5].ToString())}',";
+                                    sSqlInsert += $"'{dr[8]}',";
+                                    sSqlInsert += $"'{dr[9]}',";
+                                    sSqlInsert += $"'{dr[10]}',";
+                                    sSqlInsert += $"'{dr[11]}',";
+                                    sSqlInsert += $"'{dr[12]}'";
+                                    sSqlInsert +=");";
 
-                                    sSqlInsert += ")values(";
-                                    sSqlItemInsert += ")values('" + contractId + "',";
-                                    Debug.WriteLine(contractId + "\r\n");
-                                    for (var i = 0; i < ColCnt; i++)
-                                    {
-                                        if (i == 4 || i == 5 || i == 6 || i == 7)
-                                        {
-                                            // DateTime date = new DateTime();  
-                                            DateTime temp;
-                                            string dateString;
-                                            if (DateTime.TryParse(dr[i].ToString(), out temp))
-                                            {
-                                                // Debug.WriteLine(dr[i].ToString());
+                                    sSqlItemInsert += $"INSERT INTO items (contract_id, item_name,start_date, end_date,warranty) values (";
+                                    sSqlItemInsert += $"'{dr[0]}',";
+                                    sSqlItemInsert += $"'{dr[3]}',";
 
 
-                                                temp = Convert.ToDateTime(dr[i].ToString());
-                                                dateString = temp.ToString("yyyy/MM/dd");
+                                    sSqlItemInsert += (CheckDate(dr[6].ToString()) == null) ? "null," : $"'{CheckDate(dr[4].ToString())}',";
+                                    sSqlItemInsert += (CheckDate(dr[7].ToString()) == null) ? "null," : $"'{CheckDate(dr[5].ToString())}',";
+                                    sSqlItemInsert += $"'{dr[13]}'";
+                                    sSqlItemInsert +=")";
+                                    
+                                    
 
-
-                                            }
-                                            else
-                                            {
-                                                dateString = DateTime.MinValue.ToString("yyyy/MM/dd");
-                                            }
-                                            if (i == 4 || i == 5)
-                                            {
-                                                sSqlInsert += $"'{dateString}'";
-                                                if (i != ColCnt - 1)
-                                                {
-                                                    sSqlInsert += ",";
-                                                }
-                                            }
-                                            if (i == 6 || i == 7)
-                                            {
-                                                sSqlItemInsert += $"'{dateString}'";
-                                                if (i != 7)
-                                                {
-                                                    sSqlItemInsert += ",";
-                                                }
-                                            }
-
-
-                                        }
-                                        else
-                                        {
-                                            if (i != 3 && i != 6 && i != 7)
-                                            {
-                                                sSqlInsert += $"'{dr[i].ToString().Trim()}'";
-                                                if (i != ColCnt - 1)
-                                                {
-                                                    sSqlInsert += ",";
-                                                }
-                                            }
-                                            else
-                                            {
-
-                                                sSqlItemInsert += $"'{dr[i].ToString().Trim()}'";
-                                                if (i != 7)
-                                                {
-                                                    sSqlItemInsert += ",";
-                                                }
-                                            }
-                                        }
-
-
-                                    }
-                                    sSqlInsert += ");\r\n";
-                                    sSqlItemInsert += ");";
-                                   
-
+                                    
 
                                 }
-                                Debug.WriteLine(sSqlInsert + "\r\n");
-                                // Debug.WriteLine(SSqlItemDelete);
+                                //Debug.WriteLine(sSqlInsert + "\r\n");
+                                 Debug.WriteLine(sSqlItemInsert);
 
                             }
 
@@ -319,6 +240,27 @@ namespace ContractAPI.Controllers
         {
             string fileName { get; set; }
         }
+        private string CheckDate(string date)
+        {
+            DateTime temp;
+            string dateString;
+            if (DateTime.TryParse(date, out temp))
+            {
+                // Debug.WriteLine(dr[i].ToString());
+
+
+                temp = Convert.ToDateTime(date);
+                dateString = temp.ToString("yyyy/MM/dd");
+
+
+            }
+            else
+            {
+                //dateString = DateTime.MinValue.ToString("yyyy/MM/dd");
+                dateString = null;
+            }
+            return dateString;
+        }
         [HttpPost]
         public HttpResponseMessage importExcelToDb()
         {
@@ -372,8 +314,9 @@ namespace ContractAPI.Controllers
                 result.Add("sheetName", sheetName);
 
                 string qs = "select * from[" + sheetName + "]";
-                const int columnCnt = 13;
-                string[] contractColumn = new string[columnCnt] { "contract_id", "customer_name", "project_name", "item_name", "start_date", "end_date", "start_date", "end_date", "dept", "sales", "pjm", "contact", "contact_1" };
+                const int columnCnt = 14;
+                string[] contractColumn = new string[10] { "contract_id", "customer_name", "project_name", "start_date", "end_date", "dept", "sales", "pjm", "contact", "contact_1" };
+                string[] itemColumn = new string[5] { "contract_id", "item_name", "start_date", "end_date", "warranty" };
                 conn.Open();
                 string sSqlInsert = "";
                 string sSqlItemInsert = "";
@@ -399,135 +342,51 @@ namespace ContractAPI.Controllers
                                         rowCntErr++;
                                     }
                                     string contractId = dr[0].ToString();
-
-
-
                                     sSqlInsert += "IF EXISTS (SELECT * FROM CONTRACTS WHERE CONTRACT_ID='" + contractId + "' ) update CONTRACTS set ";
                                     SSqlItemDelete += "delete from items where contract_id='" + contractId + "';";
-                                    for (var i = 0; i < ColCnt; i++)
+
+                                    sSqlInsert += $"{contractColumn[1]} = '{dr[1]}', ";
+                                    sSqlInsert += $"{contractColumn[2]} = '{dr[2]}', ";
+                                    sSqlInsert += (CheckDate(dr[4].ToString()) == null) ? null : $"{contractColumn[3]} = '{CheckDate(dr[4].ToString())}', ";
+                                    sSqlInsert += (CheckDate(dr[5].ToString()) == null) ? null : $"{contractColumn[4]} = '{CheckDate(dr[5].ToString())}', ";
+                                    sSqlInsert += $"{contractColumn[5]} = '{dr[8]}', ";
+                                    sSqlInsert += $"{contractColumn[6]} = '{dr[9]}', ";
+                                    sSqlInsert += $"{contractColumn[7]} = '{dr[10]}', ";
+                                    sSqlInsert += $"{contractColumn[8]} = '{dr[11]}', ";
+                                    sSqlInsert += $"{contractColumn[9]} = '{dr[12]}' ";
+                                    sSqlInsert += $"where contract_id= '{contractId}' ";
+                                    sSqlInsert += "else insert into contracts(";
+                                    for (var i = 0; i < contractColumn.Length; i++)
                                     {
-                                        if (i != 3 && i != 6 && i != 7)
-                                        {
-                                            if (i == 4 || i == 5)
-                                            {
-                                                // DateTime date = new DateTime();  
-                                                DateTime temp;
-                                                string dateString;
-                                                if (DateTime.TryParse(dr[i].ToString(), out temp))
-                                                {
-                                                    // Debug.WriteLine(dr[i].ToString());
-
-
-                                                    temp = Convert.ToDateTime(dr[i].ToString());
-                                                    dateString = temp.ToString("yyyy/MM/dd");
-
-
-                                                }
-                                                else
-                                                {
-                                                    dateString = DateTime.MinValue.ToString("yyyy/MM/dd");
-                                                }
-                                                sSqlInsert += contractColumn[i] + "=" + $"'{dateString}'";
-                                            }
-                                            else
-                                            {
-                                                sSqlInsert += contractColumn[i] + "=" + $"'{dr[i].ToString()}'";
-                                            }
-
-                                            if (i != ColCnt - 1)
-                                            {
-                                                sSqlInsert += ",";
-                                            }
-                                        }
-
+                                        if (i != 0) sSqlInsert += ",";
+                                        sSqlInsert += $"{contractColumn[i]}";
 
                                     }
-                                    //Debug.WriteLine(dr[0].ToString() + "\t" + dr[1].ToString() + "\t" + dr[2].ToString());
-                                    sSqlInsert += " where contract_id='" + contractId + "' ";
-                                    sSqlInsert += "else  " +
-                                                    "INSERT INTO CONTRACTS (";
-                                    sSqlItemInsert += "INSERT INTO ITEMS(contract_id," + contractColumn[3] + "," + contractColumn[6] + "," + contractColumn[7] + "";
-                                    for (var i = 0; i < ColCnt; i++)
-                                    {
-                                        if (i != 3 && i != 6 && i != 7)
-                                        {
-                                            sSqlInsert += $"{contractColumn[i]}";
-                                            if (i != ColCnt - 1)
-                                            {
-                                                sSqlInsert += ",";
-                                            }
-                                        }
+                                    sSqlInsert += ") values (";
+                                    sSqlInsert += $"'{dr[0]}',";
+                                    sSqlInsert += $"'{dr[1]}',";
+                                    sSqlInsert += $"'{dr[2]}',";
 
-                                    }
+                                    sSqlInsert += (CheckDate(dr[4].ToString()) == null) ? "null," : $"'{CheckDate(dr[4].ToString())}',";
+                                    sSqlInsert += (CheckDate(dr[5].ToString()) == null) ? "null," : $"'{CheckDate(dr[5].ToString())}',";
+                                    sSqlInsert += $"'{dr[8]}',";
+                                    sSqlInsert += $"'{dr[9]}',";
+                                    sSqlInsert += $"'{dr[10]}',";
+                                    sSqlInsert += $"'{dr[11]}',";
+                                    sSqlInsert += $"'{dr[12]}'";
+                                    sSqlInsert += ");";
 
-                                    sSqlInsert += ")values(";
-                                    sSqlItemInsert += ")values('" + contractId + "',";
-                                    Debug.WriteLine(contractId + "\r\n");
-                                    for (var i = 0; i < ColCnt; i++)
-                                    {
-                                        if (i == 4 || i == 5 || i == 6 || i == 7)
-                                        {
-                                            // DateTime date = new DateTime();  
-                                            DateTime temp;
-                                            string dateString;
-                                            if (DateTime.TryParse(dr[i].ToString(), out temp))
-                                            {
-                                                // Debug.WriteLine(dr[i].ToString());
+                                    sSqlItemInsert += $"INSERT INTO items (contract_id, item_name,start_date, end_date,warranty) values (";
+                                    sSqlItemInsert += $"'{dr[0]}',";
+                                    sSqlItemInsert += $"'{dr[3]}',";
 
 
-                                                temp = Convert.ToDateTime(dr[i].ToString());
-                                                dateString = temp.ToString("yyyy/MM/dd");
+                                    sSqlItemInsert += (CheckDate(dr[6].ToString()) == null) ? "null," : $"'{CheckDate(dr[4].ToString())}',";
+                                    sSqlItemInsert += (CheckDate(dr[7].ToString()) == null) ? "null," : $"'{CheckDate(dr[5].ToString())}',";
+                                    sSqlItemInsert += $"'{dr[13]}'";
+                                    sSqlItemInsert += ")";
 
 
-                                            }
-                                            else
-                                            {
-                                                dateString = DateTime.MinValue.ToString("yyyy/MM/dd");
-                                            }
-                                            if (i == 4 || i == 5)
-                                            {
-                                                sSqlInsert += $"'{dateString}'";
-                                                if (i != ColCnt - 1)
-                                                {
-                                                    sSqlInsert += ",";
-                                                }
-                                            }
-                                            if (i == 6 || i == 7)
-                                            {
-                                                sSqlItemInsert += $"'{dateString}'";
-                                                if (i != 7)
-                                                {
-                                                    sSqlItemInsert += ",";
-                                                }
-                                            }
-
-
-                                        }
-                                        else
-                                        {
-                                            if (i != 3 && i != 6 && i != 7)
-                                            {
-                                                sSqlInsert += $"'{dr[i].ToString().Trim()}'";
-                                                if (i != ColCnt - 1)
-                                                {
-                                                    sSqlInsert += ",";
-                                                }
-                                            }
-                                            else
-                                            {
-
-                                                sSqlItemInsert += $"'{dr[i].ToString().Trim()}'";
-                                                if (i != 7)
-                                                {
-                                                    sSqlItemInsert += ",";
-                                                }
-                                            }
-                                        }
-
-
-                                    }
-                                    sSqlInsert += ");\r\n";
-                                    sSqlItemInsert += ");";
 
 
 

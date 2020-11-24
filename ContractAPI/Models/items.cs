@@ -19,5 +19,6 @@ namespace ContractAPI.Models
         public string item_name { get; set; }
         public Nullable<System.DateTime> start_date { get; set; }
         public Nullable<System.DateTime> end_date { get; set; }
+        public string warranty { get; set; }
     }
 }

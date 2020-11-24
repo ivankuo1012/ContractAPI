@@ -43,6 +43,7 @@ namespace ContractAPI.Controllers
             public string item_name { get; set; }
             public Nullable<System.DateTime> warn_start_date { get; set; }
             public Nullable<System.DateTime> warn_end_date { get; set; }
+            public string warranty { get; set; }
            
             //public contracts contractsItem { get; set; }
             //public items itemsItem { get; set; }
@@ -54,7 +55,7 @@ namespace ContractAPI.Controllers
             int countDetails;
             IQueryable<ContractItems> data = from c in db.contracts
                                              join i in db.items on c.contract_id equals i.contract_id
-                                             where c.contract_id == i.contract_id 
+                                             where c.contract_id == i.contract_id
 
                                              select new ContractItems { contract_id = c.contract_id,
                                                  customer_name = c.customer_name,
@@ -70,6 +71,7 @@ namespace ContractAPI.Controllers
                                                  item_name = i.item_name,
                                                  warn_start_date = i.start_date,
                                                  warn_end_date = i.end_date,
+                                                 warranty = i.warranty
                                          };
             
             if (search != null)
