@@ -9,6 +9,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
+using System.Web;
 using System.Web.Http;
 using System.Web.Http.Description;
 using ContractAPI.Models;
@@ -116,27 +117,16 @@ namespace ContractAPI.Controllers
 
         // POST: api/Logs
         [ResponseType(typeof(Logs))]
-        public async Task<IHttpActionResult> PostLogs(Logs logs)
+        public IHttpActionResult PostLogs(Logs logs)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
-
+            logs.log_ip = GetIp();
+            //Debug.WriteLine(logs);
             db.Logs.Add(logs);
-            try
-            {
-                await db.SaveChangesAsync();
-            }
-            catch (DbEntityValidationException ex)
-            {
-                var entityError = ex.EntityValidationErrors.SelectMany(x => x.ValidationErrors).Select(x => x.ErrorMessage);
-                var getFullMessage = string.Join("; ", entityError);
-                var exceptionMessage = string.Concat(ex.Message, "errors are: ", getFullMessage);
-                //NLog
-                Debug.WriteLine(exceptionMessage);
-            }
-           
+            db.SaveChanges();
 
             return CreatedAtRoute("DefaultApi", new { id = logs.log_id }, logs);
         }
@@ -169,6 +159,10 @@ namespace ContractAPI.Controllers
         private bool LogsExists(int id)
         {
             return db.Logs.Count(e => e.log_id == id) > 0;
+        }
+        private string GetIp()
+        {
+            return HttpContext.Current.Request.UserHostAddress;
         }
     }
 }
