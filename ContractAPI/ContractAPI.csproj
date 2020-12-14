@@ -203,6 +203,7 @@
     <Compile Include="Controllers\HomeController.cs" />
     <Compile Include="Controllers\itemsController.cs" />
     <Compile Include="Controllers\LdapController.cs" />
+    <Compile Include="Controllers\LogsController.cs" />
     <Compile Include="Controllers\uploadFileController.cs" />
     <Compile Include="Controllers\UserController.cs" />
     <Compile Include="Controllers\ValuesController.cs" />
@@ -246,6 +247,24 @@
     <Compile Include="Models\items.cs">
       <DependentUpon>Contracts.tt</DependentUpon>
     </Compile>
+    <Compile Include="Models\LogModel.Context.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>LogModel.Context.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\LogModel.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>LogModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\LogModel.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>LogModel.edmx</DependentUpon>
+    </Compile>
+    <Compile Include="Models\Logs.cs">
+      <DependentUpon>LogModel.tt</DependentUpon>
+    </Compile>
     <Compile Include="Models\User.cs" />
     <Compile Include="Models\users.cs">
       <DependentUpon>Contracts.tt</DependentUpon>
@@ -281,6 +300,16 @@
       <DependentUpon>Contracts.edmx</DependentUpon>
       <LastGenOutput>Contracts1.cs</LastGenOutput>
     </Content>
+    <Content Include="Models\LogModel.Context.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <DependentUpon>LogModel.edmx</DependentUpon>
+      <LastGenOutput>LogModel.Context.cs</LastGenOutput>
+    </Content>
+    <Content Include="Models\LogModel.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <DependentUpon>LogModel.edmx</DependentUpon>
+      <LastGenOutput>LogModel.cs</LastGenOutput>
+    </Content>
     <Content Include="Scripts\bootstrap.js" />
     <Content Include="Scripts\bootstrap.min.js" />
     <Content Include="Areas\HelpPage\Views\Web.config" />
@@ -315,6 +344,13 @@
     </EntityDeploy>
     <Content Include="Models\Contracts.edmx.diagram">
       <DependentUpon>Contracts.edmx</DependentUpon>
+    </Content>
+    <EntityDeploy Include="Models\LogModel.edmx">
+      <Generator>EntityModelCodeGenerator</Generator>
+      <LastGenOutput>LogModel.Designer.cs</LastGenOutput>
+    </EntityDeploy>
+    <Content Include="Models\LogModel.edmx.diagram">
+      <DependentUpon>LogModel.edmx</DependentUpon>
     </Content>
     <None Include="Scripts\jquery-3.4.1.intellisense.js" />
     <Content Include="Scripts\jquery-3.4.1.js" />
